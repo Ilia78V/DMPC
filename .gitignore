@@ -1,0 +1,60 @@
+# Autosave files
+*.asv
+*.m~
+*.autosave
+*.slx.r*
+*.mdl.r*
+
+# Derived content-obscured files
+*.p
+
+# Compiled MEX files
+*.mex*
+
+# Packaged app and toolbox files
+*.mlappinstall
+*.mltbx
+
+# Deployable archives
+*.ctf
+
+# Generated helpsearch folders
+helpsearch*/
+
+# Code generation folders
+slprj/
+sccprj/
+codegen/
+
+# Cache files
+*.slxc
+
+# Cloud based storage dotfile
+.MATLABDriveTag
+
+# buildtool cache folder
+.buildtool/
+
+# SimBiology backup files
+*.sbproj.backup
+*.sbproj.bak
+
+# Zip files
+*.zip
+
+# Library
+OPTI-master/
+qpOASES-master/
+YALMIP-master/
+
+# Unnecessary files
+ADMM_data.m
+AgentState.m
+CouplingState.m
+live_note.mlx
+main.m
+main.mlx
+MultiplierState.m
+note.m
+PenaltyState.m
+workspace.mat
