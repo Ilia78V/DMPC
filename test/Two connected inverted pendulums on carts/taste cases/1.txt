@@ -1,0 +1,34 @@
+%% Physical Parameters
+k_c = 0.5;           % Coupling spring constant (N/m) for the carts
+
+%% Simulation and Horizon Settings
+T  = 3;            % Prediction horizon (seconds)
+N  = 31;            % Number of discretization points (dt = T/(N-1))
+T_sim = 9;         % Total simulation time (seconds)
+
+%% Agent Specifications
+% Define state bounds
+rho_init = 100;     % DMPC penalty parameter
+
+%% Define Nonlinear Dynamics Function for the Inverted Pendulum on a Cart
+% The dynamics are given by:
+%   x_dot(1) = x3,
+%   x_dot(2) = x4,
+%   x_dot(3) = ( u - m*g*sin(x2)*cos(x2) + m*L*x4^2*sin(x2) ) / (M + m - m*cos(x2)^2),
+%   x_dot(4) = ( g*sin(x2) - cos(x2)*( u - m*g*sin(x2)*cos(x2) + m*L*x4^2*sin(x2) )/(M + m - m*cos(x2)^2) ) / L.
+f_i = @(x, u) [ x(3);
+                x(4);
+                ( u - m*g*sin(x(2))*cos(x(2)) + m*L*x(4)^2*sin(x(2)) ) / (M + m - m*cos(x(2))^2 );
+                ( g*sin(x(2)) - cos(x(2))*( u - m*g*sin(x(2))*cos(x(2)) + m*L*x(4)^2*sin(x(2)) )/(M + m - m*cos(x(2))^2 ) ) / L ];
+
+%% Define Stage and Terminal Cost Functions
+% Penalize deviation from desired state and control effort.
+Q   = diag([0, 50, 10, 10]);
+R   = 0.1;
+Qf  = diag([0, 70, 10, 10]);
+
+%% Create the ADMM Solver for DMPC
+max_iterations = 40;
+convergence_tolerance = 1e-2;
+
+[until t_sim = 2.00]

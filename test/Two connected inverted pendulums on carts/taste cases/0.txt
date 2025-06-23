@@ -1,0 +1,86 @@
+%% Physical Parameters
+M = 1;             % Mass of the cart (kg)
+m = 0.1;           % Mass of the pendulum bob (kg)
+L = 1;             % Length of the pendulum (m)
+g = 9.81;          % Gravitational acceleration (m/s^2)
+k_c = 1;           % Coupling spring constant (N/m) for the carts
+
+%% Simulation and Horizon Settings
+t0 = 0;            % Initial time
+T  = 3;            % Prediction horizon (seconds)
+N  = 10;            % Number of discretization points (dt = T/(N-1))
+dt = T/(N-1);
+T_sim = 9;         % Total simulation time (seconds)
+dt_sample = dt;    % Sampling time
+
+%% Agent Specifications
+n_x = 4;           % State dimension: [x; theta; x_dot; theta_dot]
+n_u = 1;           % Single control input: force on cart
+
+% Define state bounds
+x_min = [-100; -pi; -50; -50];
+x_max = [ 100;  pi;  50;  50];
+u_min = -20;       % Force bounds (N)
+u_max = 20;
+rho_init = 10;     % DMPC penalty parameter
+
+%% Initial and Desired States
+% Agent 1: initial cart at 0, pendulum at +15° (unstable)
+x0_1   = [0; 5*pi/180; 0; 0];
+x_ref1 = [0; 0; 0; 0];  % Desired: upright pendulum, cart at 0
+
+% Agent 2: initial cart at 0, pendulum at -10° (unstable)
+x0_2   = [0; -3*pi/180; 0; 0];
+x_ref2 = [0; 0; 0; 0];  % Desired: upright pendulum, cart at 0
+
+uinit = 0;         % Initial control input
+udes  = 0;         % Desired control input
+
+%% Create Agent Data Objects
+agentData1 = Agent_data(1, n_x, n_u, t0, T, N, x0_1, x_ref1, x_min, x_max, u_min, u_max, rho_init);
+agentData2 = Agent_data(2, n_x, n_u, t0, T, N, x0_2, x_ref2, x_min, x_max, u_min, u_max, rho_init);
+
+% Linearized dynamics for the inverted pendulum on a cart:
+%   x1_dot = x3,
+%   x2_dot = x4,
+%   x3_dot = (1/M)*u - (m*g/M)*x2,
+%   x4_dot = ((M+m)*g/(M*L))*x2 - (1/(M*L))*u.
+f_i = @(x, u) [ x(3);
+                x(4);
+                (1/M)*u - (m*g/M)*x(2);
+                ((M+m)*g/(M*L))*x(2) - (1/(M*L))*u ];
+
+%% Define Stage and Terminal Cost Functions
+% Penalize deviation from desired state and control effort.
+Q   = diag([0, 20, 10, 10]);
+R   = 0.1;
+Qf  = diag([0, 30, 10, 10]);
+
+l_i = @(x, u, x_ref, t) (x - x_ref)' * Q * (x - x_ref) + u' * R * u;
+V_i = @(x, x_ref) (x - x_ref)' * Qf * (x - x_ref);
+
+%% Define Constraint Functions (none additional in this example)
+g_i   = @(x, u, t) 0;
+h_i   = @(x, u, t) 0;
+g_i_N = @(x, t)   0;
+h_i_N = @(x, t)   0;
+
+%% Define Coupling Constraint Functions
+g_ij   = @(x, u, x_neighbor, u_neighbor, t) 0;
+h_ij   = @(x, u, x_neighbor, u_neighbor, t) 0;
+g_ij_N = @(x, x_neighbor, t) 0;
+h_ij_N = @(x, x_neighbor, t) 0;
+
+%% Define Coupling Function (Cart Coupling)
+% The coupling is now between the cart positions (state 1):
+%   F_spring = k_c*(x_i(1) - x_j(1))
+% This force is applied to the cart acceleration (third state).
+f_ij = @(x, u, x_neighbor, u_neighbor) ...
+    [ 0;
+      0;
+      - (k_c/M)*(x(1) - x_neighbor(1));
+      0 ];
+
+%% Create the ADMM Solver for DMPC
+max_iterations = 20;
+convergence_tolerance = 1e-3;
