@@ -149,21 +149,19 @@ classdef ADMM_Solver
                     constraints = [constraints, agent.g_i(d.x(:,k), d.u(:,k), d.t(k)) == 0];
                     constraints = [constraints, agent.h_i(d.x(:,k), d.u(:,k), d.t(k)) <= 0];
 
-                    % Approximation of neighbor constraints
-                    if obj.approximation('constraints')
-                        for neighbor = agent.sending_neighbors
-                            nd = neighbor{1}.data;
-                            ag = obj.agent_map(neighbor{1}.id);
-                            nda = ag.data; % Neighbor data as an agent
-                            % State and control bounds
-                            constraints = [constraints, nda.u_min <= nd.u_ji(:,k) <= nda.u_max];
-                            % Local equality and inequality constraints
-                            constraints = [constraints, ag.g_i(nd.x_ji(:,k), nd.u_ji(:,k), d.t(k)) == 0];
-                            constraints = [constraints, ag.h_i(nd.x_ji(:,k), nd.u_ji(:,k), d.t(k)) <= 0];
-                            % Neighbor equality and inequality constraints
-                            constraints = [constraints, neighbor{1}.g_ij(nd.x_ji(:,k), nd.u_ji(:,k), d.x(:,k), d.u(:,k), d.t(k)) == 0];
-                            constraints = [constraints, neighbor{1}.h_ij(nd.x_ji(:,k), nd.u_ji(:,k), d.x(:,k), d.u(:,k), d.t(k)) <= 0];
-                        end
+                    %%%%%%%%%%%%%%%% Approximation of neighbor constraints %%%%%%%%%%%%%%%%
+                    for neighbor = agent.const_approx_neighbors
+                        nd = neighbor{1}.data;
+                        ag = obj.agent_map(neighbor{1}.id);
+                        nda = ag.data; % Neighbor data as an agent
+                        % State and control bounds
+                        constraints = [constraints, nda.u_min <= nd.u_ji(:,k) <= nda.u_max];
+                        % Local equality and inequality constraints
+                        constraints = [constraints, ag.g_i(nd.x_ji(:,k), nd.u_ji(:,k), d.t(k)) == 0];
+                        constraints = [constraints, ag.h_i(nd.x_ji(:,k), nd.u_ji(:,k), d.t(k)) <= 0];
+                        % Neighbor equality and inequality constraints
+                        constraints = [constraints, ag.neighbor_map(agent.id).g_ij(nd.x_ji(:,k), nd.u_ji(:,k), d.x(:,k), d.u(:,k), d.t(k)) == 0];
+                        constraints = [constraints, ag.neighbor_map(agent.id).h_ij(nd.x_ji(:,k), nd.u_ji(:,k), d.x(:,k), d.u(:,k), d.t(k)) <= 0];
                     end
                     
                     % Neighbor equality and inequality constraints
@@ -184,26 +182,31 @@ classdef ADMM_Solver
                     constraints = [constraints, agent.sending_neighbors{j}.h_ij_N(d.x(:,d.N), nd.x_ji(:,d.N), d.t(d.N)) <= 0];
                 end
                 
-                if obj.approximation('constraints')
-                    for neighbor = agent.sending_neighbors
-                        nd = neighbor{1}.data;
-                        ag = obj.agent_map(neighbor{1}.id);
-                        nda = ag.data; % Neighbor data as an agent
-                        % Local equality and inequality constraints
-                        constraints = [constraints, ag.g_i_N(nd.x_ji(:,d.N), d.t(d.N)) == 0];
-                        constraints = [constraints, ag.h_i_N(nd.x_ji(:,d.N), d.t(d.N)) <= 0];
-                        % Neighbor equality and inequality constraints
-                        constraints = [constraints, neighbor{1}.g_ij_N(nd.x_ji(:,d.N), d.x(:,d.N), d.t(d.N)) == 0];
-                        constraints = [constraints, neighbor{1}.h_ij_N(nd.x_ji(:,d.N), d.x(:,d.N), d.t(d.N)) <= 0];
-                    end
+                    %%%%%%%%%%%%%%%% Approximation of neighbor constraints %%%%%%%%%%%%%%%%
+                for neighbor = agent.const_approx_neighbors   %sending_neighbors
+                    nd = neighbor{1}.data;
+                    ag = obj.agent_map(neighbor{1}.id);
+                    % Local equality and inequality constraints
+                    constraints = [constraints, ag.g_i_N(nd.x_ji(:,d.N), d.t(d.N)) == 0];
+                    constraints = [constraints, ag.h_i_N(nd.x_ji(:,d.N), d.t(d.N)) <= 0];
+                    % Neighbor equality and inequality constraints
+                    constraints = [constraints, ag.neighbor_map(agent.id).g_ij_N(nd.x_ji(:,d.N), d.x(:,d.N), d.t(d.N)) == 0];
+                    constraints = [constraints, ag.neighbor_map(agent.id).h_ij_N(nd.x_ji(:,d.N), d.x(:,d.N), d.t(d.N)) <= 0];
                 end
 
                 % Construct cost
                 cost = obj.cost_constructor(agent);
-                if obj.approximation('cost')
-                    cost = cost * (1/(1+length(agent.neighbors)));
-                    for neighbor = agent.neighbors
-                        cost = cost + (1/(1+length(obj.agent_map(neighbor{1}.id).neighbors))) * obj.cost_constructor(neighbor{1});
+                % if obj.approximation('cost')
+                %     cost = cost * (1/(1+length(agent.neighbors)));
+                %     for neighbor = agent.neighbors
+                %         cost = cost + (1/(1+length(obj.agent_map(neighbor{1}.id).neighbors))) * obj.cost_constructor(neighbor{1});
+                %     end
+                % end
+                %%%%%%%%%%%%%%%% Approximation of neighbor cost %%%%%%%%%%%%%%%%
+                if ~isempty(agent.cost_approx_neighbors)
+                    cost = cost * (1/(1+length(agent.cost_approx_neighbors)));
+                    for neighbor = agent.cost_approx_neighbors
+                        cost = cost + (1/(1+length(obj.agent_map(neighbor{1}.id).cost_approx_neighbors))) * obj.cost_constructor(neighbor{1});
                     end
                 end
 
@@ -259,7 +262,7 @@ classdef ADMM_Solver
 
                 % -----Solve the optimization problem-----
                 options = sdpsettings('solver', obj.optimizer, 'verbose', 1, 'debug', 0);
-                options.ipopt.max_iter = 500;           % Set max iterations
+                options.ipopt.max_iter = 2000;           % Set max iterations
                 options.ipopt.tol = 1e-5;               % Set convergence tolerance
 
                 sol = optimize(constraints, cost, options);

@@ -4,9 +4,10 @@ clear; clc;
 
 %% (Optional) Add YALMIP/IPOPT paths
 if false
-    originalPath = 'M:\DMPC proj\matlab';
-    addpath(genpath('M:\DMPC proj\matlab\YALMIP-master'));
-    optiPath = 'M:\DMPC proj\matlab\OPTI-master';
+    %originalPath = 'W:\proj\DMPC proj\matlab';
+    originalPath = 'C:\Users\ej62ixyv\proj\DMPC proj\matlab';
+    addpath(genpath([originalPath, '\YALMIP-master']));
+    optiPath = [originalPath, '\OPTI-master'];
     cd(optiPath);
     run('opti_Install.m');
     cd(originalPath);
@@ -49,11 +50,11 @@ u_max = 5;
 rho_init = 50;  % Penalty parameter
 
 % Neighbor approximation
-appr = true;
+appr = false;
 approximation = containers.Map('KeyType', 'char', 'ValueType', 'logical');
 approximation('cost') = appr;
 approximation('dynamics') = appr;
-approximation('constraints') = appr;
+approximation('constraints') = true;
 
 %% Create Agent Data Objects
 agentData1 = Agent_data(1, n_x, n_u, t0, T_ho, N, x0_1, x_ref1, x_min, x_max, u_min, u_max, rho_init, approximation);
@@ -108,7 +109,7 @@ agent2 = Agent(2, f_i2, @(x,T)V_i(x,x_ref2,T), @(x,u,t) l_i(x,u,x_ref2,u_ref2,t)
 
 %% Create Neighbor Objects for Coupling
 % For Agent 1: register Agent 2 as neighbor with coupling f_ij1
-neighborData1 = Neighbor_data(1, n_x, n_u, agent2, rho_init);
+neighborData1 = Neighbor_data(1, n_x, n_u, agent2, rho_init, approximation);
 %tuning rho
 neighborData1.rho_u_ij = neighborData1.rho_u_ij/5;
 neighborData1.rho_u_ji = neighborData1.rho_u_ji/5;
@@ -117,7 +118,7 @@ neighbor1 = Neighbor(1, agent2, true, true, f_ij1, g_ij, g_ij_N, h_ij, h_ij_N, V
 
 
 % For Agent 2: register Agent 1 as neighbor with coupling f_ij2
-neighborData2 = Neighbor_data(2, n_x, n_u, agent1, rho_init);
+neighborData2 = Neighbor_data(2, n_x, n_u, agent1, rho_init, approximation);
 %tuning rho
 neighborData2.rho_u_ij = neighborData2.rho_u_ij/5;
 neighborData2.rho_u_ji = neighborData2.rho_u_ji/5;

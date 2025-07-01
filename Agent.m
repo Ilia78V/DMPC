@@ -18,6 +18,9 @@ classdef Agent < handle
         receiving_neighbors;
         sending_neighbors;
         approx_neighbors;
+        cost_approx_neighbors;
+        dyn_approx_neighbors;
+        const_approx_neighbors;
 
         % Agent data
         data;
@@ -85,22 +88,6 @@ classdef Agent < handle
         end
 
         %% Register neighbors
-        % function register_neighbors(obj, neighbors)
-        %     obj.neighbors = neighbors;
-        %     obj.neighbor_map = containers.Map('KeyType', 'double', 'ValueType', 'any');
-        %     obj.receiving_neighbors = {};
-        %     obj.sending_neighbors = {};
-        %     for i = 1:length(obj.neighbors)
-        %         obj.neighbor_map(obj.neighbors{i}.id) = obj.neighbors{i};
-        %         if obj.neighbors{i}.sending == true
-        %             obj.sending_neighbors{end+1} = obj.neighbors{i};
-        %         end
-        %         if obj.neighbors{i}.receiving == true
-        %             obj.receiving_neighbors{end+1} = obj.neighbors{i};
-        %         end
-        %     end
-        % end
-
         function register_neighbors(obj, new_neighbors)
             % Initialize once if not already done
             if isempty(obj.neighbors)
@@ -132,6 +119,15 @@ classdef Agent < handle
                 end
                 if new_neighbors{i}.approx
                     obj.approx_neighbors{end+1} = new_neighbors{i};
+                end
+                if new_neighbors{i}.data.approximation('cost')
+                    obj.cost_approx_neighbors{end+1} = new_neighbors{i};
+                end
+                if new_neighbors{i}.data.approximation('dynamics')
+                    obj.dyn_approx_neighbors{end+1} = new_neighbors{i};
+                end
+                if new_neighbors{i}.data.approximation('constraints')
+                    obj.const_approx_neighbors{end+1} = new_neighbors{i};
                 end
             end
         end

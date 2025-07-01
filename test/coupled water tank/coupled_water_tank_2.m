@@ -48,7 +48,7 @@ appr = true;
 approx = containers.Map({'cost','dynamics','constraints'},{appr,appr,appr});
 
 %% Build Agent_data objects
-rho_init = 50;
+rho_init = 100;
 n_x = 1; n_u = 1;
 x_min = -1e3;  x_max = +1e3;
 u_min = -1e3;  u_max = +1e3;
@@ -61,7 +61,7 @@ for i=1:4
         i, n_x, n_u, t0, T, N, x0, xr, ...
         x_min, x_max, u_min, u_max, rho_init, approx );
     %tunning rho
-    agentData{i}.rho_u_i = agentData{i}.rho_u_i/5;
+    agentData{i}.rho_u_i = agentData{i}.rho_u_i/100;
 end
 
 %% Define dynamics and costs
@@ -247,10 +247,10 @@ for i = 1:size(neighbor_pairs,1)
     neighbor_id   = neighbor_pairs(i,1);
     agent_id = neighbor_pairs(i,2);
 
-    neighbor_data{i} = Neighbor_data(neighbor_id, n_x, n_u, agents{agent_id}, rho_init);
+    neighbor_data{i} = Neighbor_data(neighbor_id, n_x, n_u, agents{agent_id}, rho_init, approx);
     %tunning rho
-    neighbor_data{i}.rho_u_ij = neighbor_data{i}.rho_u_ij/5;
-    neighbor_data{i}.rho_u_ji = neighbor_data{i}.rho_u_ji/5;
+    neighbor_data{i}.rho_u_ij = neighbor_data{i}.rho_u_ij/100;
+    neighbor_data{i}.rho_u_ji = neighbor_data{i}.rho_u_ji/100;
 
     neighbors{i} = Neighbor(neighbor_id, ...
                             agents{agent_id}, ...
@@ -320,4 +320,12 @@ ylabel('Cost'); xlabel('Time (s)');
 title('Cost per agent');
 
 %% (Optional) Save the results
-%save('C:\Users\ej62ixyv\proj\DMPC proj\matlab\test\coupled water tank\New folder\w4_poly9_it60_rho50.mat');
+% save('C:\Users\ej62ixyv\proj\DMPC proj\matlab\test\coupled water tank\New folder\w4_poly9_it60_rho50.mat');
+
+% filesToAdd = repo.ModifiedFiles;       % returns a string array
+
+% add(repo, filesToAdd);                 % stage all modified files
+
+% commit(repo, "fix numerical issue of dual residual");
+
+% push(repo);

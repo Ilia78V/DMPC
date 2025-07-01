@@ -3,7 +3,7 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
         % Neighbor parameters
         id;             % Neighbor ID
         agent_data;
-        approx;
+        approximation;
         
         % Time Variable
         t0;             % Initial time step
@@ -61,11 +61,11 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
     
     methods
         %% Constructor
-        function obj = Neighbor_data(id, n_x, n_u, agent, rho_init, approx)
+        function obj = Neighbor_data(id, n_x, n_u, agent, rho_init, approximation)
             if nargin > 0
                 obj.id = id;
                 obj.agent_data = agent.data;
-                obj.approx = approx; %approx = containers.Map({'cost','dynamics','constraints'},{flag,flag,flag});
+                obj.approximation = approximation; %approx = containers.Map({'cost','dynamics','constraints'},{flag,flag,flag});
 
                 obj.t0 = obj.agent_data.t0;
                 obj.t = linspace(obj.agent_data.t0, obj.agent_data.T, obj.agent_data.N);   
