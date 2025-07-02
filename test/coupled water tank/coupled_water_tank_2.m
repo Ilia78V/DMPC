@@ -326,6 +326,6 @@ title('Cost per agent');
 
 % add(repo, filesToAdd);                 % stage all modified files
 
-% commit(repo, "fix numerical issue of dual residual");
+% commit(repo, Message="fix numerical issue of dual residual");
 
 % push(repo);

@@ -28,42 +28,6 @@ classdef Agent < handle
         
         % Solver
         solver;
-
-        % 
-        % agentState;
-        % previous_agentState;
-        % 
-        % couplingState;
-        % previous_couplingState;
-        % 
-        % multiplierState;
-        % previous_multiplierState;
-        % 
-        % penaltyState;
-        % initial_penalty;
-        % 
-        % % Optimization parameters
-        % optimizationInfo;
-        % solution;
-%% to do
-        % % Neighbor approximation
-        % is_approximating;
-        % is_approximatingCost;
-        % is_approximatingConstraints;
-        % is_approximatingDynamics;
-        % 
-        % % Neighbor approximation switch parameters
-        % delay_c;
-        % thr;
-        % needs_approx_switch_state;
-        % if_init;
-        % relative_ADMM_PrimalResiduals;
-        % relative_ADMM_DualResiduals;
-        % envelope;
-        % residual_data;
-        % 
-        % decay_factor;
-        % decay_floor;
     end
 
     methods

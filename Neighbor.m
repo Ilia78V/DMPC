@@ -1,6 +1,5 @@
 classdef Neighbor < handle 
     properties (Access = public)
-
         % Neighbor parameters
         id;
         agent;
@@ -21,46 +20,6 @@ classdef Neighbor < handle
         % Neighbor data
         data;
         previous_data;
-
-        % % States for neighbor
-        % local_copies;
-        % coupled_multiplierState;
-        % coupled_penaltyState;
-        % 
-        % neighbors_localCopies;
-        % neighbors_couplingState;
-        % neighbors_coupled_multiplierState;
-        % neighbors_coupled_penaltyState;
-        % 
-        % previous_couplingState;
-        % previous_multiplierState;
-        % 
-        % initial_penalty;
-%% to do
-        % externalInfluence_agentState;
-        % externalInfluence_couplingState;
-        % externalInfluence_multiplierState;
-        % externalInfluence_penaltyState;
-        % 
-        % neighbors_externalInfluence_couplingState;
-        % neighbors_externalInfluence_multiplierState;
-        % neighbors_externalInfluence_penaltyState;
-        % 
-        % previous_externalInfluence_couplingState;
-        % previous_externalInfluence_multiplierState;
-        % previous_neighbors_externalInfluence_couplingState;
-        % previous_neighbors_couplingState;
-        % 
-        % % States for cost approximation
-        % neighbors_desiredAgentState;
-        % 
-        % % Neighbor approximation
-        % approximate_neighbor;
-        % 
-        % is_approximating;
-        % is_approximatingCost;
-        % is_approximatingConstraints;
-        % is_approximatingDynamics;
     end
 
     methods
@@ -71,7 +30,7 @@ classdef Neighbor < handle
             obj.sending = sending;
             obj.receiving = receiving;
             obj.approx = false;
-            if neighbor_data.approx('cost') || neighbor_data.approx('dynamics') || neighbor_data.approx('constraints') 
+            if neighbor_data.approximation('cost') || neighbor_data.approximation('dynamics') || neighbor_data.approximation('constraints') 
                 obj.approx = true; 
             end
 
