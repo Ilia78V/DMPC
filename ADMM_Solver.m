@@ -126,14 +126,15 @@ classdef ADMM_Solver
                             constraints = [constraints, nd.x_ji(:,k+1) == nd.x_ji(:,k) + d.dt * neighbor_dynamics];
                         end
                     end
-                    % comput the external influence
+                    
+                    % compute the external influence
                     if obj.approximation('dynamics')
                         for neighbor = agent.receiving_neighbors
                             nd = neighbor{1}.data;
                             v = sdpvar(size(nd.v_i,1), 1);
                             for se_neighbor = agent.sending_neighbors
                                 if neighbor{1}.id ~= se_neighbor{1}.id
-                                    v = v + neighbor{1}.f_ij(nd.x_ji(:,k), nd.u_ji(:,k), d.x(:,k), d.u(:,k));
+                                    v = v + neighbor{1}.f_ij(d.x(:,k), d.u(:,k), nd.x_ji(:,k), nd.u_ji(:,k));
                                 end
                             end
                         end
