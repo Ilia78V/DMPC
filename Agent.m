@@ -93,6 +93,9 @@ classdef Agent < handle
                 if new_neighbors{i}.data.approximation('constraints')
                     obj.const_approx_neighbors{end+1} = new_neighbors{i};
                 end
+                % if ~obj.data.approximation('dynamics') || new_neighbors{i}.data.agent_data.approximation('dynamics')
+                %     obj.border_ag = true;
+                % end
             end
         end
         %% Update agent state

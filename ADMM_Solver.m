@@ -113,7 +113,7 @@ classdef ADMM_Solver
 
                     constraints = [constraints, d.x(:,k+1) == d.x(:,k) + d.dt * dynamics];
                     
-                    % Approximation of neighbor dynamics
+                    %%%%%%%%%%%%%%%% Approximation of neighbor dynamics %%%%%%%%%%%%%%%%                    
                     if obj.approximation('dynamics')
                         for neighbor = agent.sending_neighbors
                             nd = neighbor{1}.data;
@@ -127,6 +127,7 @@ classdef ADMM_Solver
                         end
                     end
                     
+                    %%%%%%%%%%%%%%%% Approximation of neighbor dynamics %%%%%%%%%%%%%%%%
                     % compute the external influence
                     if obj.approximation('dynamics')
                         for neighbor = agent.receiving_neighbors
@@ -173,7 +174,7 @@ classdef ADMM_Solver
                     end
                 end
 
-                % Final state bounds
+                % FINAL STATE BOUNDS
                 constraints = [constraints, d.x_min <= d.x(:,d.N) <= d.x_max]; 
                 constraints = [constraints, agent.g_i_N(d.x(:,d.N), d.t(d.N)) == 0];
                 constraints = [constraints, agent.h_i_N(d.x(:,d.N), d.t(d.N)) <= 0];
@@ -203,6 +204,7 @@ classdef ADMM_Solver
                 %         cost = cost + (1/(1+length(obj.agent_map(neighbor{1}.id).neighbors))) * obj.cost_constructor(neighbor{1});
                 %     end
                 % end
+                %%%%%%%%%%%%%%%% Approximation of neighbor cost %%%%%%%%%%%%%%%%
                 %%%%%%%%%%%%%%%% Approximation of neighbor cost %%%%%%%%%%%%%%%%
                 if ~isempty(agent.cost_approx_neighbors)
                     cost = cost * (1/(1+length(agent.cost_approx_neighbors)));
@@ -390,7 +392,7 @@ classdef ADMM_Solver
                 end
             
             else
-                % Default case (without neighborhood approximation)
+                % DEFAULT CASE (without neighborhood approximation)
             
                 % -----Define the ADMM augmented cost function-----
                 cost = agent.V_i(x(:,d.N), d.N); % Terminal cost

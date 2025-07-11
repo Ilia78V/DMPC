@@ -29,6 +29,7 @@ classdef Neighbor < handle
             obj.agent = agent;
             obj.sending = sending;
             obj.receiving = receiving;
+            
             obj.approx = false;
             if neighbor_data.approximation('cost') || neighbor_data.approximation('dynamics') || neighbor_data.approximation('constraints') 
                 obj.approx = true; 
@@ -46,15 +47,15 @@ classdef Neighbor < handle
             obj.previous_data = copy(neighbor_data);            
         end
 
-        %% Update local copies for neighbor
-        function update_local_copies (obj, x_neighbors_opt, u_neighbors_opt)
-            obj.local_copies.x = x_neighbors_opt;
-            obj.local_copies.u = u_neighbors_opt;
-        end
-        %% Update neighbor local copies
-        function update_neighbor_local_copies()
-            obj.local_copies.x = x_neighbors_opt;
-            obj.local_copies.u = u_neighbors_opt;
-        end
+        % %% Update local copies for neighbor
+        % function update_local_copies (obj, x_neighbors_opt, u_neighbors_opt)
+        %     obj.local_copies.x = x_neighbors_opt;
+        %     obj.local_copies.u = u_neighbors_opt;
+        % end
+        % %% Update neighbor local copies
+        % function update_neighbor_local_copies()
+        %     obj.local_copies.x = x_neighbors_opt;
+        %     obj.local_copies.u = u_neighbors_opt;
+        % end
     end
 end

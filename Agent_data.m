@@ -1,6 +1,7 @@
 classdef Agent_data < handle & matlab.mixin.Copyable
     properties
         agent;
+        border_ag;
 
         % Time Variable
         t0;             % Initial time step
@@ -58,9 +59,10 @@ classdef Agent_data < handle & matlab.mixin.Copyable
     
     methods
         %% Constructor
-        function obj = Agent_data(id, n_x, n_u, t0, T, N, x0, x_ref, x_min, x_max, u_min, u_max, rho_init, approximation)
+        function obj = Agent_data(id, n_x, n_u, t0, T, N, x0, x_ref, x_min, x_max, u_min, u_max, rho_init, approximation, border_ag)
             if nargin > 0
                 obj.id = id;
+                obj.border_ag = border_ag;
 
                 obj.t0 = t0;
                 obj.T = T;
@@ -85,16 +87,7 @@ classdef Agent_data < handle & matlab.mixin.Copyable
 
                 obj.approximation = approximation;
                 
-                if approximation('dynamics') == false
-                    obj.C_i = diag([obj.rho_x_i; obj.rho_u_i]);
-                    
-                    obj.x = sdpvar(obj.n_x, N);             
-                    obj.u = sdpvar(obj.n_u, N-1);            
-                    obj.z_x = zeros(obj.n_x, N);          
-                    obj.z_u = zeros(obj.n_u, N-1);          
-                    obj.mu_x = zeros(obj.n_x, N);           
-                    obj.mu_u = zeros(obj.n_u, N-1);
-                else
+                if approximation('dynamics')
                     obj.C_i = diag([obj.rho_u_i]);
 
                     obj.x = sdpvar(obj.n_x, N);             
@@ -104,6 +97,28 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                     % obj.z_v = zeros(obj.n_x, N);           
                     obj.mu_u = zeros(obj.n_u, N-1);
                     % obj.mu_v = zeros(obj.n_x, N);
+
+                elseif border_ag
+                    obj.C_i = diag([obj.rho_u_i]);
+
+                    obj.x = sdpvar(obj.n_x, N);             
+                    obj.u = sdpvar(obj.n_u, N-1);
+                    obj.z_u = zeros(obj.n_u, N-1);
+                    obj.mu_u = zeros(obj.n_u, N-1);
+                    
+                    obj.z_x = zeros(obj.n_x, N);          
+                    obj.mu_x = zeros(obj.n_x, N);           
+
+                else
+                    obj.C_i = diag([obj.rho_x_i; obj.rho_u_i]);
+                    
+                    obj.x = sdpvar(obj.n_x, N);             
+                    obj.u = sdpvar(obj.n_u, N-1);            
+                    obj.z_x = zeros(obj.n_x, N);          
+                    obj.z_u = zeros(obj.n_u, N-1);          
+                    obj.mu_x = zeros(obj.n_x, N);           
+                    obj.mu_u = zeros(obj.n_u, N-1);
+
                 end
 
                 obj.primal_residual = [];
@@ -127,6 +142,16 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                     nd.z_v_i = [nd.z_v_i(:, k+1:end)]; % zeros(size(obj.z_x,1), k)];
                     nd.mu_v_i = [nd.mu_v_i(:, k+1:end)];
                 end
+
+            elseif obj.border_ag
+                    for neighbor = obj.agent.receiving_neighbors
+                        nd = neighbor{1}.data;
+                        nd.z_v_i = [nd.z_v_i(:, k+1:end)];
+                        nd.mu_v_i = [nd.mu_v_i(:, k+1:end)];
+                    end
+                    obj.z_x = [obj.z_x(:, k+1:end)];
+                    obj.mu_x = [obj.mu_x(:, k+1:end)];
+
             else
                 obj.z_x = [obj.z_x(:, k+1:end)]; % zeros(size(obj.z_x,1), k)];
                 obj.mu_x = [obj.mu_x(:, k+1:end)];
@@ -145,6 +170,16 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                         nd.z_v_i = [nd.z_v_i, nd.z_v_i(:, end)]; % zeros(size(obj.z_x,1), k)];
                         nd.mu_v_i = [nd.mu_v_i, nd.mu_v_i(:, end)];
                     end
+
+                elseif obj.border_ag
+                    for neighbor = obj.agent.receiving_neighbors
+                        nd = neighbor{1}.data;
+                        nd.z_v_i = [nd.z_v_i, nd.z_v_i(:, end)]; 
+                        nd.mu_v_i = [nd.mu_v_i, nd.mu_v_i(:, end)];
+                    end
+                    obj.z_x = [obj.z_x, obj.z_x(:, end)]; 
+                    obj.mu_x = [obj.mu_x, obj.mu_x(:, end)];
+                    
                 else
                     obj.z_x = [obj.z_x, obj.z_x(:, end)]; % zeros(size(obj.z_x,1), k)];
                     obj.mu_x = [obj.mu_x, obj.mu_x(:, end)];

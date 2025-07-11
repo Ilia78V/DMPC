@@ -5,6 +5,7 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
         agent_data;
         approximation;
         
+        
         % Time Variable
         t0;             % Initial time step
         t;              % Time vector
