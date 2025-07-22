@@ -1,7 +1,7 @@
 classdef Agent_data < handle & matlab.mixin.Copyable
     properties
         agent;
-        border_ag;
+        border; % has three modes: 0: not a boarder agent, 1: a left-side boarder agent(approximation region), 2: a right-side boarder agent (default region)
 
         % Time Variable
         t0;             % Initial time step
@@ -59,10 +59,9 @@ classdef Agent_data < handle & matlab.mixin.Copyable
     
     methods
         %% Constructor
-        function obj = Agent_data(id, n_x, n_u, t0, T, N, x0, x_ref, x_min, x_max, u_min, u_max, rho_init, approximation, border_ag)
+        function obj = Agent_data(id, n_x, n_u, t0, T, N, x0, x_ref, x_min, x_max, u_min, u_max, rho_init)
             if nargin > 0
                 obj.id = id;
-                obj.border_ag = border_ag;
 
                 obj.t0 = t0;
                 obj.T = T;
@@ -85,20 +84,23 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                 obj.rho_u_i = rho_init * ones(obj.n_u, 1);
                 % obj.rho_v_i = rho_init * ones(obj.n_x, 1);
 
-                obj.approximation = approximation;
+                obj.approximation = containers.Map({'cost','dynamics','constraints'},{false,false,false});
                 
-                if approximation('dynamics')
-                    obj.C_i = diag([obj.rho_u_i]);
-
+                if true %approximation('dynamics')
+                    %obj.C_i = diag([obj.rho_u_i]);
                     obj.x = sdpvar(obj.n_x, N);             
-                    obj.u = sdpvar(obj.n_u, N-1);
-                    % obj.v = repmat({zeros(obj.n_x, N)}, 1, length(agent.neighbors));          
-                    obj.z_u = zeros(obj.n_u, N-1);
-                    % obj.z_v = zeros(obj.n_x, N);           
+                    obj.u = sdpvar(obj.n_u, N-1);            
+                    obj.z_x = zeros(obj.n_x, N);          
+                    obj.z_u = zeros(obj.n_u, N-1);          
+                    obj.mu_x = zeros(obj.n_x, N);           
                     obj.mu_u = zeros(obj.n_u, N-1);
-                    % obj.mu_v = zeros(obj.n_x, N);
+                    
+                    % obj.x = sdpvar(obj.n_x, N);             
+                    % obj.u = sdpvar(obj.n_u, N-1);
+                    % obj.z_u = zeros(obj.n_u, N-1);
+                    % obj.mu_u = zeros(obj.n_u, N-1);
 
-                elseif border_ag
+                elseif obj.border
                     obj.C_i = diag([obj.rho_u_i]);
 
                     obj.x = sdpvar(obj.n_x, N);             
@@ -130,57 +132,23 @@ classdef Agent_data < handle & matlab.mixin.Copyable
         %% Initialize
         function initialize(obj, x, k)
             obj.x0 = x; 
-            
             x0 = value(obj.x(:, k+1:end));
             u0 = value(obj.u(:, k+1:end));
             obj.z_u = [obj.z_u(:, k+1:end)];
             obj.mu_u = [obj.mu_u(:, k+1:end)];
 
-            if obj.approximation('dynamics')
-                for neighbor = obj.agent.receiving_neighbors
-                    nd = neighbor{1}.data;
-                    nd.z_v_i = [nd.z_v_i(:, k+1:end)]; % zeros(size(obj.z_x,1), k)];
-                    nd.mu_v_i = [nd.mu_v_i(:, k+1:end)];
-                end
-
-            elseif obj.border_ag
-                    for neighbor = obj.agent.receiving_neighbors
-                        nd = neighbor{1}.data;
-                        nd.z_v_i = [nd.z_v_i(:, k+1:end)];
-                        nd.mu_v_i = [nd.mu_v_i(:, k+1:end)];
-                    end
-                    obj.z_x = [obj.z_x(:, k+1:end)];
-                    obj.mu_x = [obj.mu_x(:, k+1:end)];
-
-            else
+            if ~obj.approximation('dynamics') || obj.border
                 obj.z_x = [obj.z_x(:, k+1:end)]; % zeros(size(obj.z_x,1), k)];
                 obj.mu_x = [obj.mu_x(:, k+1:end)];
             end
-            
-            
+
             for i=1:k
                 x0 = [x0, x0(:, end)];
                 u0 = [u0, u0(:, end)];
                 obj.z_u = [obj.z_u, obj.z_u(:, end)];   
                 obj.mu_u = [obj.mu_u, obj.mu_u(:, end)];
-                
-                if obj.approximation('dynamics')
-                    for neighbor = obj.agent.receiving_neighbors
-                        nd = neighbor{1}.data;
-                        nd.z_v_i = [nd.z_v_i, nd.z_v_i(:, end)]; % zeros(size(obj.z_x,1), k)];
-                        nd.mu_v_i = [nd.mu_v_i, nd.mu_v_i(:, end)];
-                    end
-
-                elseif obj.border_ag
-                    for neighbor = obj.agent.receiving_neighbors
-                        nd = neighbor{1}.data;
-                        nd.z_v_i = [nd.z_v_i, nd.z_v_i(:, end)]; 
-                        nd.mu_v_i = [nd.mu_v_i, nd.mu_v_i(:, end)];
-                    end
-                    obj.z_x = [obj.z_x, obj.z_x(:, end)]; 
-                    obj.mu_x = [obj.mu_x, obj.mu_x(:, end)];
                     
-                else
+                if ~obj.approximation('dynamics') || obj.border
                     obj.z_x = [obj.z_x, obj.z_x(:, end)]; % zeros(size(obj.z_x,1), k)];
                     obj.mu_x = [obj.mu_x, obj.mu_x(:, end)];
                 end 
@@ -189,13 +157,6 @@ classdef Agent_data < handle & matlab.mixin.Copyable
             assign(obj.x, x0);
             assign(obj.u, u0);
             
-            %value(obj.x(:, k));
-            %obj.u0 = value(obj.u(:, k));
-
-            % Reinitialize the decision variable for the new horizon:
-            %obj.x = sdpvar(obj.n_x, obj.N);
-            % Optionally, reinitialize d.u as well if needed:
-            %obj.u = sdpvar(obj.n_u, obj.N-1);
         end
 
         %% Shift

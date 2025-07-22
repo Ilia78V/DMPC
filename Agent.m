@@ -85,12 +85,15 @@ classdef Agent < handle
                     obj.approx_neighbors{end+1} = new_neighbors{i};
                 end
                 if new_neighbors{i}.data.approximation('cost')
+                    obj.data.approximation('cost') = true;
                     obj.cost_approx_neighbors{end+1} = new_neighbors{i};
                 end
                 if new_neighbors{i}.data.approximation('dynamics')
+                    obj.data.approximation('dynamics') = true;
                     obj.dyn_approx_neighbors{end+1} = new_neighbors{i};
                 end
                 if new_neighbors{i}.data.approximation('constraints')
+                    obj.data.approximation('constraints') = true;
                     obj.const_approx_neighbors{end+1} = new_neighbors{i};
                 end
                 % if ~obj.data.approximation('dynamics') || new_neighbors{i}.data.agent_data.approximation('dynamics')
@@ -99,20 +102,20 @@ classdef Agent < handle
             end
         end
         %% Update agent state
-        function update_agentState(obj, x_opt, u_opt)
-            obj.previous_agentState = obj.agentState;
-            obj.agentState.x = x_opt;
-            obj.agentState.u = u_opt;
-        end
-
-        % %% Get approximation data
-        % function get_approx_data(obj, approx)
-        %     obj.data.approximation = approx;
+        % function update_agentState(obj, x_opt, u_opt)
+        %     obj.previous_agentState = obj.agentState;
+        %     obj.agentState.x = x_opt;
+        %     obj.agentState.u = u_opt;
         % end
-    
-        %%
-        function register_solver(obj, solver)
-            obj.solver = solver;
-        end
+        % 
+        % % %% Get approximation data
+        % % function get_approx_data(obj, approx)
+        % %     obj.data.approximation = approx;
+        % % end
+        % 
+        % %%
+        % function register_solver(obj, solver)
+        %     obj.solver = solver;
+        % end
     end
 end

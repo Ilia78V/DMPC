@@ -48,12 +48,34 @@ classdef ADMM_Solver
             end
 
             obj.approximation = approximation;
+            obj.set_boarder_agents();
 
             % obj.approximation = containers.Map('KeyType', 'char', 'ValueType', 'logical');
             % obj.approximation('cost') = false;
             % obj.approximation('dynamics') = false;
             % obj.approximation('constraints') = false;
 
+        end
+
+        %% Set border agents
+        function set_boarder_agents(obj)
+            for agent = obj.agents
+                d = agent{1}.data;
+                d.border = 0;
+                if d.approximation("dynamics")
+                    if size(agent{1}.dyn_approx_neighbors, 2) ~= size(agent{1}.neighbors, 2)
+                        d.border = 1;
+                    end
+                else
+                    for n = agent{1}.neighbors
+                        nd = n{1}.data;
+                        if obj.agent_map(nd.id).data.approximation("dynamics")
+                            d.border = 2;
+                            break;
+                        end
+                    end
+                end
+            end
         end
 
         %% ADMM solver function
@@ -416,7 +438,7 @@ classdef ADMM_Solver
                         z_coupling = [d.z_x(:,k); d.z_u(:,k)];
                         mu_local = [d.mu_x(:,k); d.mu_u(:,k)];
                         cost = cost + d.dt * mu_local' * (z_coupling - z_local);
-                        cost = cost + (d.dt/2) * (z_coupling - z_local)' * d.C_i * (z_coupling - z_local);
+                        cost = cost + (d.dt/2) * (z_coupling - z_local)' * diag([d.rho_x_i; d.rho_u_i]) * (z_coupling - z_local);
                         
                         % Neighbor coupling terms (scaled by d.dt for integral form)
                         for j = 1:length(agent.sending_neighbors)
@@ -425,7 +447,7 @@ classdef ADMM_Solver
                             z_coupling_neighbor = [nd.z_x_j(:,k); nd.z_u_j(:,k)];
                             mu_neighbor = [nd.mu_x_ji(:,k); nd.mu_u_ji(:,k)];
                             cost = cost + d.dt * mu_neighbor' * (z_coupling_neighbor - z_neighbor);
-                            cost = cost + (d.dt/2) * (z_coupling_neighbor - z_neighbor)' * nd.C_ji * (z_coupling_neighbor - z_neighbor);
+                            cost = cost + (d.dt/2) * (z_coupling_neighbor - z_neighbor)' * diag([nd.rho_x_ji; nd.rho_u_ji]) * (z_coupling_neighbor - z_neighbor);
                         end
                     end
     
