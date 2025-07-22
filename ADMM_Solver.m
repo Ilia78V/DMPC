@@ -136,7 +136,7 @@ classdef ADMM_Solver
                     constraints = [constraints, d.x(:,k+1) == d.x(:,k) + d.dt * dynamics];
                     
                     %%%%%%%%%%%%%%%% Approximation of neighbor dynamics %%%%%%%%%%%%%%%%                    
-                    if obj.approximation('dynamics')
+                    if d.approximation('dynamics') || d.border
                         for neighbor = agent.sending_neighbors
                             nd = neighbor{1}.data;
 
@@ -151,7 +151,7 @@ classdef ADMM_Solver
                     
                     %%%%%%%%%%%%%%%% Approximation of neighbor dynamics %%%%%%%%%%%%%%%%
                     % compute the external influence
-                    if obj.approximation('dynamics')
+                    if d.approximation('dynamics') || d.border
                         for neighbor = agent.receiving_neighbors
                             nd = neighbor{1}.data;
                             v = sdpvar(size(nd.v_i,1), 1);
@@ -323,14 +323,14 @@ classdef ADMM_Solver
                 % end
 
 
-                if obj.approximation('dynamics')
-                    for neighbor = agent.sending_neighbors
-                        nd = neighbor{1}.data;
-                        if isnan(value(nd.v_ji(:, end)))
-                            assign(nd.v_ji(:, end), zeros(size(nd.v_ji(:, end))));
-                        end
-                    end
-                end
+                % if obj.approximation('dynamics')
+                %     for neighbor = agent.sending_neighbors
+                %         nd = neighbor{1}.data;
+                %         if isnan(value(nd.v_ji(:, end)))
+                %             assign(nd.v_ji(:, end), zeros(size(nd.v_ji(:, end))));
+                %         end
+                %     end
+                % end
                 % x_opt = value(d.x);
                 % u_opt = value(d.u);
                 % x_neighbors_opt = cellfun(@value, d.x_ji, 'UniformOutput', false);
@@ -358,7 +358,7 @@ classdef ADMM_Solver
                agent = obj.agent_map(agent.id);
             end
             
-            if obj.approximation('dynamics')
+            if d.approximation('dynamics') || d.border
                 % -----Define the ADMM augmented cost function-----
                 cost = agent.V_i(x(:,d.N), d.N); % Terminal cost
                 for neighbor = agent.neighbors
@@ -479,15 +479,37 @@ classdef ADMM_Solver
         %% Send local copies to sending neighbors (Step 2)
         function send_local_copies(obj)
             for agent = obj.agents
+                d = agent{1}.data;
                 for neighbor = agent{1}.sending_neighbors
+                    nd = neighbor{1}.data;
                     ag = obj.agent_map(neighbor{1}.id).neighbor_map(agent{1}.id);
                     ag.data.u_ij = value(neighbor{1}.data.u_ji);
                     
-                    if obj.approximation('dynamics')
-                        ag.data.v_ij = value(neighbor{1}.data.v_ji);
-                    else
-                        ag.data.x_ij = value(neighbor{1}.data.x_ji);
+                    if d.border == 0
+                        if d.approximation('dynamics')
+                            ag.data.v_ij = value(neighbor{1}.data.v_ji);
+                        else
+                            ag.data.x_ij = value(neighbor{1}.data.x_ji);
+                        end
+
+                    elseif d.border == 1
+                        if ~nd.approximation('dynamics')
+                            ag.data.x_ij = value(neighbor{1}.data.x_ji);
+                            ag.data.v_ij = value(neighbor{1}.data.v_ji);
+                        end
+
+                    elseif d.border == 2
+                        if nd.approximation('dynamics')
+                            ag.data.x_ij = value(neighbor{1}.data.x_ji);
+                            ag.data.v_ij = value(neighbor{1}.data.v_ji);
+                        end
                     end
+
+                    % if obj.approximation('dynamics') || 
+                    %     ag.data.v_ij = value(neighbor{1}.data.v_ji);
+                    % else
+                    %     ag.data.x_ij = value(neighbor{1}.data.x_ji);
+                    % end
                 end
             end
         end
