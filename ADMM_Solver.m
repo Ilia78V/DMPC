@@ -323,14 +323,15 @@ classdef ADMM_Solver
                 % end
 
 
-                % if obj.approximation('dynamics')
-                %     for neighbor = agent.sending_neighbors
-                %         nd = neighbor{1}.data;
-                %         if isnan(value(nd.v_ji(:, end)))
-                %             assign(nd.v_ji(:, end), zeros(size(nd.v_ji(:, end))));
-                %         end
-                %     end
-                % end
+                if obj.approximation('dynamics')
+                    for neighbor = agent.sending_neighbors
+                        nd = neighbor{1}.data;
+                        if isnan(value(nd.v_ji(:, end)))
+                            assign(nd.v_ji(:, end), zeros(size(nd.v_ji(:, end))));
+                        end
+                    end
+                end
+                
                 % x_opt = value(d.x);
                 % u_opt = value(d.u);
                 % x_neighbors_opt = cellfun(@value, d.x_ji, 'UniformOutput', false);
@@ -518,13 +519,18 @@ classdef ADMM_Solver
         function compute_coupling_variables(obj)
             for agent = obj.agents
                 d = agent{1}.data;
-                %pd = agent{1}.previous_data;
+                
+                %%%%%%%% input coupling variables %%%%%%%%
+                z_local_u = value(d.u) - diag(1 ./ d.rho_u_i) * d.mu_u;
+                z_neighbor_u = zeros(size(z_local_u));
+                for neighbor = agent{1}.receiving_neighbors
+                    nd = neighbor{1}.data;
+                    z_neighbor_u = z_neighbor_u + nd.u_ij - diag(1 ./ nd.rho_u_ij) * nd.mu_u_ij;
+                end
+                d.z_u = (1 / (1 + length(agent{1}.receiving_neighbors))) * (z_local_u + z_neighbor_u);
 
-                if obj.approximation('dynamics')
-                    % Compute local term: (x_i, u_i) - C_i^{-1} * mu_i
-                    % z_local_x = value(d.x) - diag(1 ./ d.rho_x_i) * d.mu_x;
-                    z_local_u = value(d.u) - diag(1 ./ d.rho_u_i) * d.mu_u;
-
+                %%%%%%%% external influence coupling variables %%%%%%%%
+                if d.approximation('dynamics') || d.border
                     z_local_v = cell(size(agent{1}.receiving_neighbors));
                     for i = 1:length(agent{1}.receiving_neighbors)
                         nd = agent{1}.receiving_neighbors{i}.data;
@@ -532,57 +538,66 @@ classdef ADMM_Solver
                     end
     
                     % Compute neighbor contribution
-                    z_neighbor_u = zeros(size(z_local_u));
                     z_neighbor_v = cellfun(@(m) zeros(size(z_local_v{1})), z_local_v, 'UniformOutput', false);
                     cell(size(z_local_v));
                     for i = 1:length(agent{1}.receiving_neighbors)
                         nd = agent{1}.receiving_neighbors{i}.data;
-                        z_neighbor_u = z_neighbor_u + nd.u_ij - diag(1 ./ nd.rho_u_ij) * nd.mu_u_ij;
                         delta_v = nd.v_ij - diag(1 ./ nd.rho_v_ij) * nd.mu_v_ij;
                         z_neighbor_v = cellfun(@(z) z + delta_v, z_neighbor_v, 'UniformOutput', false);
                     end
                     
                     % Compute final coupling variable update
-                    d.z_u = (1 / (1 + length(agent{1}.receiving_neighbors))) * (z_local_u + z_neighbor_u);
                     for i = 1:length(agent{1}.receiving_neighbors)
                         nd = agent{1}.receiving_neighbors{i}.data;
                         nd.z_v_i = (1 / (1 + length(agent{1}.receiving_neighbors))) * (z_local_v{i} + z_neighbor_v{i});
                     end
                 
-                else
-                    % Compute local term: (x_i, u_i) - C_i^{-1} * mu_i
+                end
+                
+                %%%%%%%% state coupling variables %%%%%%%%
+                if ~d.approximation('dynamics') || d.border
                     z_local_x = value(d.x) - diag(1 ./ d.rho_x_i) * d.mu_x;
-                    z_local_u = value(d.u) - diag(1 ./ d.rho_u_i) * d.mu_u;
     
                     % Compute neighbor contribution
                     z_neighbor_x = zeros(size(z_local_x));
-                    z_neighbor_u = zeros(size(z_local_u));
                     for neighbor = agent{1}.receiving_neighbors
                         nd = neighbor{1}.data;
                         z_neighbor_x = z_neighbor_x + nd.x_ij - diag(1 ./ nd.rho_x_ij) * nd.mu_x_ij;
-                        z_neighbor_u = z_neighbor_u + nd.u_ij - diag(1 ./ nd.rho_u_ij) * nd.mu_u_ij;
                     end
                     
                     % Compute final coupling variable update
                     d.z_x = (1 / (1 + length(agent{1}.receiving_neighbors))) * (z_local_x + z_neighbor_x);
-                    d.z_u = (1 / (1 + length(agent{1}.receiving_neighbors))) * (z_local_u + z_neighbor_u);
                 end
 
             end
         end
 
-
         %% Send coupling variables to receiving neighbors (Step 4)
         function send_coupling_variables(obj)
             for agent = obj.agents
+                d = agent{1}.data;
                 for neighbor = agent{1}.receiving_neighbors
                     ag = obj.agent_map(neighbor{1}.id).neighbor_map(agent{1}.id);
                     ag.data.z_u_j = agent{1}.data.z_u;
                     
-                    if obj.approximation('dynamics')
-                        ag.data.z_v_j = ag.data.z_v_i;
-                    else
-                        ag.data.z_x_j = agent{1}.data.z_x;
+                    if d.border == 0
+                        if d.approximation('dynamics')
+                            ag.data.z_v_j = neighbor{1}.data.z_v_i;
+                        else
+                            ag.data.z_x_j = agent{1}.data.z_x;
+                        end
+
+                    elseif d.border == 1
+                        if ~nd.approximation('dynamics')
+                            ag.data.z_x_j = agent{1}.data.z_x;
+                            ag.data.z_v_j = neighbor{1}.data.z_v_i;
+                        end
+
+                    elseif d.border == 2
+                        if nd.approximation('dynamics')
+                            ag.data.z_x_j = agent{1}.data.z_x;
+                            ag.data.z_v_j = neighbor{1}.data.z_v_i;
+                        end
                     end
                 end
             end
