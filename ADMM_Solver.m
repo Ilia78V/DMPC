@@ -29,7 +29,7 @@ classdef ADMM_Solver
 
     methods
         %% Constructor
-        function obj = ADMM_Solver(optimizer, agents, solutions, max_iterations, convergence_tolerance, approximation)
+        function obj = ADMM_Solver(optimizer, agents, solutions, max_iterations, convergence_tolerance)
             obj.optimizer = optimizer;
             
             obj.agents = agents;
@@ -47,7 +47,7 @@ classdef ADMM_Solver
                 obj.solution_map(obj.solutions{i}.id) = obj.solutions{i};
             end
 
-            obj.approximation = approximation;
+            % obj.approximation = approximation;
             obj.set_boarder_agents();
 
             % obj.approximation = containers.Map('KeyType', 'char', 'ValueType', 'logical');
@@ -323,7 +323,7 @@ classdef ADMM_Solver
                 % end
 
 
-                if obj.approximation('dynamics')
+                if d.approximation('dynamics') || d.border
                     for neighbor = agent.sending_neighbors
                         nd = neighbor{1}.data;
                         if isnan(value(nd.v_ji(:, end)))
@@ -577,6 +577,7 @@ classdef ADMM_Solver
             for agent = obj.agents
                 d = agent{1}.data;
                 for neighbor = agent{1}.receiving_neighbors
+                    nd = neighbor{1}.data;
                     ag = obj.agent_map(neighbor{1}.id).neighbor_map(agent{1}.id);
                     ag.data.z_u_j = agent{1}.data.z_u;
                     
@@ -607,10 +608,16 @@ classdef ADMM_Solver
         function compute_multipliers(obj)
             for agent = obj.agents
                 d = agent{1}.data;
-
-                if obj.approximation('dynamics')
-                    d.mu_u = d.mu_u + diag(d.rho_u_i) * (d.z_u - value(d.u));
-
+                
+                %%%%%%%% input Lagrange multipliers %%%%%%%%
+                d.mu_u = d.mu_u + diag(d.rho_u_i) * (d.z_u - value(d.u));                
+                for neighbor = agent{1}.sending_neighbors
+                    nd = neighbor{1}.data;
+                    nd.mu_u_ji = nd.mu_u_ji + diag(nd.rho_u_ji) * (nd.z_u_j - value(nd.u_ji));
+                end
+        
+                %%%%%%%% external influence Lagrange multipliers %%%%%%%%
+                if d.approximation('dynamics') || d.border
                     for i = 1:length(agent{1}.receiving_neighbors)
                         nd = agent{1}.receiving_neighbors{i}.data;
                         nd.mu_v_i = nd.mu_v_i + diag(nd.rho_v_i) * (nd.z_v_i - value(nd.v_i));
@@ -619,34 +626,50 @@ classdef ADMM_Solver
                     % Neighbor contribution
                     for neighbor = agent{1}.sending_neighbors
                         nd = neighbor{1}.data;
-                        nd.mu_u_ji = nd.mu_u_ji + diag(nd.rho_u_ji) * (nd.z_u_j - value(nd.u_ji));
                         nd.mu_v_ji = nd.mu_v_ji + diag(nd.rho_v_ji) * (nd.z_v_j - value(nd.v_ji));
                     end
-                
-                else
+                end
+        
+                %%%%%%%% state Lagrange multipliers %%%%%%%%
+                if ~d.approximation('dynamics') || d.border
                     d.mu_x = d.mu_x + diag(d.rho_x_i) * (d.z_x - value(d.x));
-                    d.mu_u = d.mu_u + diag(d.rho_u_i) * (d.z_u - value(d.u));                
                     
                     % Neighbor contribution
                     for neighbor = agent{1}.sending_neighbors
                         nd = neighbor{1}.data;
                         nd.mu_x_ji = nd.mu_x_ji + diag(nd.rho_x_ji) * (nd.z_x_j - value(nd.x_ji));
-                        nd.mu_u_ji = nd.mu_u_ji + diag(nd.rho_u_ji) * (nd.z_u_j - value(nd.u_ji));
                     end
                 end
             end
         end
+
         %% Send Lagrange multipliers to sending neighbors (Step 6)
         function send_multipliers(obj)
             for agent = obj.agents
+                d = agent{1}.data;
                 for neighbor = agent{1}.sending_neighbors
+                    nd = neighbor{1}.data;
                     ag = obj.agent_map(neighbor{1}.id).neighbor_map(agent{1}.id);
                     ag.data.mu_u_ij = neighbor{1}.data.mu_u_ji;
                     
-                    if obj.approximation('dynamics')
-                        ag.data.mu_v_ij = neighbor{1}.data.mu_v_ji;
-                    else
-                        ag.data.mu_x_ij = neighbor{1}.data.mu_x_ji;
+                    if d.border == 0
+                        if d.approximation('dynamics')
+                            ag.data.mu_v_ij = neighbor{1}.data.mu_v_ji;
+                        else
+                            ag.data.mu_x_ij = neighbor{1}.data.mu_x_ji;
+                        end
+
+                    elseif d.border == 1
+                        if ~nd.approximation('dynamics')
+                            ag.data.mu_x_ij = neighbor{1}.data.mu_x_ji;
+                            ag.data.mu_v_ij = neighbor{1}.data.mu_v_ji;
+                        end
+
+                    elseif d.border == 2
+                        if nd.approximation('dynamics')
+                            ag.data.mu_x_ij = neighbor{1}.data.mu_x_ji;
+                            ag.data.mu_v_ij = neighbor{1}.data.mu_v_ji;
+                        end
                     end
                 end
             end
@@ -659,7 +682,7 @@ classdef ADMM_Solver
                 d = agent{1}.data;
                 pd = agent{1}.previous_data;
 
-                if obj.approximation('dynamics')
+                if d.approximation('dynamics')
                     error_vec = vecnorm([(d.z_u - pd.z_u); (d.mu_u - pd.mu_u)], 2, 2); % Computes the 2-norm (Euclidean norm) of each row
                     for neighbor = agent{1}.sending_neighbors
                         nd = neighbor{1}.data;
@@ -693,7 +716,7 @@ classdef ADMM_Solver
                 d = agent{1}.data;
                 pd = agent{1}.previous_data;  
                 
-                if obj.approximation('dynamics')
+                if d.approximation('dynamics')
                     %primal residual
                     local_pr_u = norm(vecnorm(value(d.u) - d.z_u, 2, 1), 1)/(d.N - 1);
                     local_pr_v = zeros(length(agent{1}.receiving_neighbors),1);
