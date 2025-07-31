@@ -716,7 +716,7 @@ classdef ADMM_Solver
                 d = agent{1}.data;
                 pd = agent{1}.previous_data;  
                 
-                if d.approximation('dynamics')
+                if d.approximation('dynamics') || d.border
                     %primal residual
                     local_pr_u = norm(vecnorm(value(d.u) - d.z_u, 2, 1), 1)/(d.N - 1);
                     local_pr_v = zeros(length(agent{1}.receiving_neighbors),1);
