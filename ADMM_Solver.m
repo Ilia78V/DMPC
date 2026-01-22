@@ -783,7 +783,7 @@ classdef ADMM_Solver
                     %dual residual
                     local_dr_u = vecnorm((diag(pd.rho_u_i) * (d.z_u - pd.z_u)), 2, 1);
                     ADMM_local_dr_u = norm(local_dr_u, 1)/(d.N - 1);
-                    d.rho_u_i = adaptPenaltyParameter(obj, local_pr_u, local_dr_u, d.rho_u_i); % Update rho_u_i
+                    % d.rho_u_i = adaptPenaltyParameter(obj, local_pr_u, local_dr_u, d.rho_u_i); % Update rho_u_i
 
                     local_dr_v = cell(1, length(agent{1}.receiving_neighbors));
                     ADMM_local_dr_v = zeros(length(agent{1}.receiving_neighbors),1);

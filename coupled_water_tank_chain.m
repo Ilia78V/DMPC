@@ -48,13 +48,13 @@ xdes = 2.0;    % desired for agent 4
 appr = true;
 def_appr = false;
 approx = containers.Map({'cost','dynamics','constraints'},{appr,appr,appr});
-def_approx = containers.Map({'cost','dynamics','constraints'},{def_appr,def_appr,def_appr});
+def_approx = containers.Map({'cost','dynamics','constraints'},{appr,appr,appr});
 
 %% Build Agent_data objects
-rho_init = 1;
-rhoD  = 0.5;     % default-scale (x,u consensus)
-rhoNA = 0.005;   % NA-scale (u,v consensus)
-rhoB  = 0.05;    % bridge-scale for boundary u
+rho_init = 0.005;
+% rhoD  = 0.5;     % default-scale (x,u consensus)
+% rhoNA = 0.005;   % NA-scale (u,v consensus)
+% rhoB  = 0.05;    % bridge-scale for boundary u
 
 n_x = 1; n_u = 1;
 x_min = 0;  x_max = 3;
@@ -74,10 +74,10 @@ for i=1:4
     % agentData{i}.rho_u_i = agentData{i}.rho_u_i/100;
 end
 % Tuning rho
-agentData{1}.setEdge(rhoD, rhoD);
-agentData{1}.setEdge(rhoD, rhoB);
-agentData{1}.setEdge(rhoD, rhoB);
-agentData{1}.setEdge(rhoNA, rhoNA);
+% agentData{1}.setEdge(rhoD, rhoD);
+% agentData{1}.setEdge(rhoD, rhoB);
+% agentData{1}.setEdge(rhoD, rhoB);
+% agentData{1}.setEdge(rhoNA, rhoNA);
 
 %% Define dynamics and costs
 f_agent = cellfun(@(p) @(x,u) (p(2)*u - p(3))/p(1), params, 'UniformOutput',false);
@@ -305,14 +305,14 @@ for i = 1:size(neighbor_pairs,1)
 end
 
 % Tunning rho
-neighbor_data{1}.setEdge(rhoD, rhoD, rhoNA);
-neighbor_data{2}.setEdge(rhoD, rhoD, rhoNA);
-
-neighbor_data{3}.setEdge(rhoD, rhoB, rhoNA);
-neighbor_data{4}.setEdge(rhoD, rhoB, rhoNA);
-
-neighbor_data{5}.setEdge(rhoD, rhoNA, rhoNA);
-neighbor_data{6}.setEdge(rhoD, rhoNA, rhoNA);
+% neighbor_data{1}.setEdge(rhoD, rhoD, rhoNA);
+% neighbor_data{2}.setEdge(rhoD, rhoD, rhoNA);
+% 
+% neighbor_data{3}.setEdge(rhoD, rhoB, rhoNA);
+% neighbor_data{4}.setEdge(rhoD, rhoB, rhoNA);
+% 
+% neighbor_data{5}.setEdge(rhoD, rhoNA, rhoNA);
+% neighbor_data{6}.setEdge(rhoD, rhoNA, rhoNA);
 
 %% Register neighbors
 % agents{1}.register_neighbors({neighbor_2_from1, neighbor_3_from1});
