@@ -138,6 +138,7 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
         function initialize(obj, k)
             x_ji0 = value(obj.x_ji(:, k+1:end));
             u_ji0 = value(obj.u_ji(:, k+1:end));
+            
             obj.u_ij   = [obj.u_ij(:, k+1:end)];
 
             obj.z_u_j  = [obj.z_u_j(:, k+1:end)];
@@ -148,6 +149,7 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
             for i=1:k
                 x_ji0 = [x_ji0, x_ji0(:, end)];
                 u_ji0 = [u_ji0, u_ji0(:, end)];
+                
                 obj.u_ij   = [obj.u_ij,   obj.u_ij(:, end)];
 
                 obj.z_u_j  = [obj.z_u_j,   obj.z_u_j(:, end)];
@@ -159,11 +161,12 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
             assign(obj.x_ji, x_ji0);
             assign(obj.u_ji, u_ji0);
 
-            if obj.approximation('dynamics') || obj.agent_data.border
+            if true %obj.approximation('dynamics') || obj.agent_data.border
                 %%%%%%%% approx case %%%%%%%%
                 % if receiving
                 v0 = value(obj.v_i(:, k+1:end));
                 v_ji0 = value(obj.v_ji(:, k+1:end));
+
                 obj.v_ij   = [obj.v_ij(:, k+1:end)];
 
                 obj.z_v_i = [obj.z_v_i(:, k+1:end)]; % zeros(size(obj.z_x,1), k)];
@@ -224,7 +227,7 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
             %     assign(obj.v_i, v0);
             %     assign(obj.v_ji, v_ji0);
 
-            if ~obj.approximation('dynamics') || obj.agent_data.border
+            if true %~obj.approximation('dynamics') || obj.agent_data.border
                 %%%%%%%% default case %%%%%%%%
                 obj.x_ij   = [obj.x_ij(:, k+1:end)];
 
@@ -304,5 +307,17 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
         %     obj.mu_x_ji = [obj.mu_x_ji(:, k+1:end), obj.mu_x_ji(:, end)];
         %     obj.mu_u_ji = [obj.mu_u_ji(:, k+1:end),  obj.mu_u_ji(:, end)];
         % end
+        %% Set edge for tuning penalty parameters
+        function setEdge(obj, rho_x, rho_u, rho_v)
+            obj.rho_x_ij = rho_x * obj.rho_x_ij;
+            obj.rho_x_ji = rho_x * obj.rho_x_ji;
+        
+            obj.rho_u_ij = rho_u * obj.rho_u_ij;
+            obj.rho_u_ji = rho_u * obj.rho_u_ji;
+        
+            obj.rho_v_ij = rho_v * obj.rho_v_ij;
+            obj.rho_v_ji = rho_v * obj.rho_v_ji;
+            obj.rho_v_i  = rho_v * obj.rho_v_i;
+        end
     end
 end

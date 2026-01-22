@@ -1,0 +1,108 @@
+ADMM_Solver.m (line 32): The McCabe cyclomatic complexity of 'ADMM_Solver' is 3.
+ADMM_Solver.m (line 61): The McCabe cyclomatic complexity of 'set_boarder_agents' is 6.
+ADMM_Solver.m (line 82): The McCabe cyclomatic complexity of 'solve' is 4.
+ADMM_Solver.m (line 116): The McCabe cyclomatic complexity of 'compute_local_variables' is 27.
+ADMM_Solver.m (line 123): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 125): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 136): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 143): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 148): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 164): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 169): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 169): Expressions like a <= b <= c are interpreted as (a <= b) <= c. Typically, to test a <= b <= c mathematically, if all arguments are numeric scalars, use (a <= b) && (b <= c), otherwise use (a <= b) & (b <= c).
+ADMM_Solver.m (line 170): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 170): Expressions like a <= b <= c are interpreted as (a <= b) <= c. Typically, to test a <= b <= c mathematically, if all arguments are numeric scalars, use (a <= b) && (b <= c), otherwise use (a <= b) & (b <= c).
+ADMM_Solver.m (line 173): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 174): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 182): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 182): Expressions like a <= b <= c are interpreted as (a <= b) <= c. Typically, to test a <= b <= c mathematically, if all arguments are numeric scalars, use (a <= b) && (b <= c), otherwise use (a <= b) & (b <= c).
+ADMM_Solver.m (line 184): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 185): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 187): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 188): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 194): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 195): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 200): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 200): Expressions like a <= b <= c are interpreted as (a <= b) <= c. Typically, to test a <= b <= c mathematically, if all arguments are numeric scalars, use (a <= b) && (b <= c), otherwise use (a <= b) & (b <= c).
+ADMM_Solver.m (line 201): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 202): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 205): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 206): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 214): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 215): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 217): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 218): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+ADMM_Solver.m (line 348): The McCabe cyclomatic complexity of 'cost_constructor' is 21.
+ADMM_Solver.m (line 481): The McCabe cyclomatic complexity of 'send_local_copies' is 9.
+ADMM_Solver.m (line 519): The McCabe cyclomatic complexity of 'compute_coupling_variables' is 11.
+ADMM_Solver.m (line 541): The McCabe cyclomatic complexity of the anonymous function on line 541 is 1.
+ADMM_Solver.m (line 546): The McCabe cyclomatic complexity of the anonymous function on line 546 is 1.
+ADMM_Solver.m (line 576): The McCabe cyclomatic complexity of 'send_coupling_variables' is 9.
+ADMM_Solver.m (line 608): The McCabe cyclomatic complexity of 'compute_multipliers' is 10.
+ADMM_Solver.m (line 647): The McCabe cyclomatic complexity of 'send_multipliers' is 9.
+ADMM_Solver.m (line 679): The McCabe cyclomatic complexity of 'check_convergence' is 5.
+ADMM_Solver.m (line 690): '[' produces a value that might be unused.
+ADMM_Solver.m (line 704): The McCabe cyclomatic complexity of 'update_previous_data' is 3.
+ADMM_Solver.m (line 706): Loop index 'agent' is changed inside of a FOR loop.
+ADMM_Solver.m (line 708): Loop index 'neighbor' is changed inside of a FOR loop.
+ADMM_Solver.m (line 714): The McCabe cyclomatic complexity of 'update_residual' is 8.
+ADMM_Solver.m (line 846): The McCabe cyclomatic complexity of 'shift' is 4.
+ADMM_Solver.m (line 861): The preallocated value assigned to variable might be unused.
+ADMM_Solver.m (line 884): The McCabe cyclomatic complexity of 'update_solutions' is 2.
+Agent.m (line 35): The McCabe cyclomatic complexity of 'Agent' is 1.
+Agent.m (line 55): The McCabe cyclomatic complexity of 'register_neighbors' is 10.
+Agent_data.m (line 62): The McCabe cyclomatic complexity of 'Agent_data' is 4.
+Agent_data.m (line 103): This statement (and possibly following ones) cannot be reached.
+Agent_data.m (line 133): The McCabe cyclomatic complexity of 'initialize' is 6.
+Agent_data.m (line 135): There is a property named 'x0'. Maybe this is a reference to it?
+Agent_data.m (line 136): There is a property named 'u0'. Maybe this is a reference to it?
+Agent_data.m (line 146): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+Agent_data.m (line 146): There is a property named 'x0'. Maybe this is a reference to it?
+Agent_data.m (line 146): There is a property named 'x0'. Maybe this is a reference to it?
+Agent_data.m (line 146): There is a property named 'x0'. Maybe this is a reference to it?
+Agent_data.m (line 147): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+Agent_data.m (line 147): There is a property named 'u0'. Maybe this is a reference to it?
+Agent_data.m (line 147): There is a property named 'u0'. Maybe this is a reference to it?
+Agent_data.m (line 147): There is a property named 'u0'. Maybe this is a reference to it?
+Agent_data.m (line 157): There is a property named 'x0'. Maybe this is a reference to it?
+Agent_data.m (line 158): There is a property named 'u0'. Maybe this is a reference to it?
+Neighbor.m (line 27): The McCabe cyclomatic complexity of 'Neighbor' is 4.
+Neighbor_data.m (line 65): The McCabe cyclomatic complexity of 'Neighbor_data' is 3.
+Neighbor_data.m (line 92): This statement (and possibly following ones) cannot be reached.
+Neighbor_data.m (line 138): The McCabe cyclomatic complexity of 'initialize' is 8.
+Neighbor_data.m (line 149): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+Neighbor_data.m (line 150): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+Neighbor_data.m (line 177): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+Neighbor_data.m (line 178): Variable appears to change size on every loop iteration. Consider preallocating for speed.
+Solution.m (line 14): The McCabe cyclomatic complexity of 'Solution' is 1.
+Solution.m (line 17): Use of brackets [] is unnecessary.
+Solution.m (line 25): The McCabe cyclomatic complexity of 'update' is 1.
+coupled_water_tank_chain.m (line 1): The McCabe cyclomatic complexity is 10.
+coupled_water_tank_chain.m (line 8): This statement (and possibly following ones) cannot be reached.
+coupled_water_tank_chain.m (line 29): Comment with percent (%) following comma acts as a row separator. Replace the comma with a semicolon to make the row separation clearer. Alternatively, replace the percent (%) with an ellipsis (...) to add a comment inside a row.
+coupled_water_tank_chain.m (line 30): Comment with percent (%) following comma acts as a row separator. Replace the comma with a semicolon to make the row separation clearer. Alternatively, replace the percent (%) with an ellipsis (...) to add a comment inside a row.
+coupled_water_tank_chain.m (line 31): Comment with percent (%) following comma acts as a row separator. Replace the comma with a semicolon to make the row separation clearer. Alternatively, replace the percent (%) with an ellipsis (...) to add a comment inside a row.
+coupled_water_tank_chain.m (line 71): The McCabe cyclomatic complexity of the anonymous function on line 71 is 1.
+coupled_water_tank_chain.m (line 71): The McCabe cyclomatic complexity of the anonymous function on line 71 is 1.
+coupled_water_tank_chain.m (line 73): The McCabe cyclomatic complexity of the anonymous function on line 73 is 1.
+coupled_water_tank_chain.m (line 73): The McCabe cyclomatic complexity of the anonymous function on line 73 is 1.
+coupled_water_tank_chain.m (line 73): The McCabe cyclomatic complexity of the anonymous function on line 73 is 1.
+coupled_water_tank_chain.m (line 73): The McCabe cyclomatic complexity of the anonymous function on line 73 is 1.
+coupled_water_tank_chain.m (line 76): The McCabe cyclomatic complexity of the anonymous function on line 76 is 1.
+coupled_water_tank_chain.m (line 76): The McCabe cyclomatic complexity of the anonymous function on line 76 is 1.
+coupled_water_tank_chain.m (line 76): The McCabe cyclomatic complexity of the anonymous function on line 76 is 1.
+coupled_water_tank_chain.m (line 76): The McCabe cyclomatic complexity of the anonymous function on line 76 is 1.
+coupled_water_tank_chain.m (line 79): The McCabe cyclomatic complexity of the anonymous function on line 79 is 1.
+coupled_water_tank_chain.m (line 80): The McCabe cyclomatic complexity of the anonymous function on line 80 is 1.
+coupled_water_tank_chain.m (line 90): The McCabe cyclomatic complexity of the anonymous function on line 90 is 1.
+coupled_water_tank_chain.m (line 90): The McCabe cyclomatic complexity of the anonymous function on line 90 is 1.
+coupled_water_tank_chain.m (line 91): The McCabe cyclomatic complexity of the anonymous function on line 91 is 1.
+coupled_water_tank_chain.m (line 91): The McCabe cyclomatic complexity of the anonymous function on line 91 is 1.
+coupled_water_tank_chain.m (line 112): The McCabe cyclomatic complexity of the anonymous function on line 112 is 1.
+coupled_water_tank_chain.m (line 124): The McCabe cyclomatic complexity of the anonymous function on line 124 is 1.
+coupled_water_tank_chain.m (line 136): The McCabe cyclomatic complexity of the anonymous function on line 136 is 1.
+coupled_water_tank_chain.m (line 137): The McCabe cyclomatic complexity of the anonymous function on line 137 is 1.
+coupled_water_tank_chain.m (line 139): The McCabe cyclomatic complexity of the anonymous function on line 139 is 1.
+coupled_water_tank_chain.m (line 140): The McCabe cyclomatic complexity of the anonymous function on line 140 is 1.
+coupled_water_tank_chain.m (line 183): { A{I} } can usually be replaced by A(I) or A(I)', which can be much faster.
+coupled_water_tank_chain.m (line 193): The McCabe cyclomatic complexity of the anonymous function on line 193 is 1.

@@ -1,7 +1,7 @@
 classdef Agent_data < handle & matlab.mixin.Copyable
     properties
         agent;
-        border; % has three modes: 0: not a boarder agent, 1: a left-side boarder agent(approximation region), 2: a right-side boarder agent (default region)
+        border; % has three modes: 0: an active or inactive agent, 1: an inner boundry agent(approximation region), 2: an outer boundry agent (default region)
 
         % Time Variable
         t0;             % Initial time step
@@ -137,7 +137,7 @@ classdef Agent_data < handle & matlab.mixin.Copyable
             obj.z_u = [obj.z_u(:, k+1:end)];
             obj.mu_u = [obj.mu_u(:, k+1:end)];
 
-            if ~obj.approximation('dynamics') || obj.border
+            if true %~obj.approximation('dynamics') || obj.border
                 obj.z_x = [obj.z_x(:, k+1:end)]; % zeros(size(obj.z_x,1), k)];
                 obj.mu_x = [obj.mu_x(:, k+1:end)];
             end
@@ -148,7 +148,7 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                 obj.z_u = [obj.z_u, obj.z_u(:, end)];   
                 obj.mu_u = [obj.mu_u, obj.mu_u(:, end)];
                     
-                if ~obj.approximation('dynamics') || obj.border
+                if true %~obj.approximation('dynamics') || obj.border
                     obj.z_x = [obj.z_x, obj.z_x(:, end)]; % zeros(size(obj.z_x,1), k)];
                     obj.mu_x = [obj.mu_x, obj.mu_x(:, end)];
                 end 
@@ -169,6 +169,11 @@ classdef Agent_data < handle & matlab.mixin.Copyable
         % 
         % 
         % end
-        % 
+        
+        %% Set edge for tuning penalty parameters
+        function setEdge(obj, rho_x, rho_u)
+            obj.rho_x_i = rho_x * obj.rho_x_i;
+            obj.rho_u_i = rho_u * obj.rho_u_i;
+        end
     end
 end

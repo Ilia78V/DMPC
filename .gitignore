@@ -26,6 +26,9 @@ slprj/
 sccprj/
 codegen/
 
+#some folder
+profiler_report/
+
 # Cache files
 *.slxc
 
@@ -48,6 +51,7 @@ qpOASES-master/
 YALMIP-master/
 
 # Unnecessary files
+deps.mat
 ADMM_data.m
 AgentState.m
 CouplingState.m
