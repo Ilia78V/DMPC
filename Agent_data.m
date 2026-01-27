@@ -80,8 +80,8 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                 obj.x0 = x0;
                 obj.x_ref = x_ref;
         
-                obj.rho_x_i = rho_init * ones(obj.n_x, 1);       
-                obj.rho_u_i = rho_init * ones(obj.n_u, 1);
+                obj.rho_x_i = rho_init * ones(obj.n_x, N);       
+                obj.rho_u_i = rho_init * ones(obj.n_u, N-1);
                 % obj.rho_v_i = rho_init * ones(obj.n_x, 1);
 
                 obj.approximation = containers.Map({'cost','dynamics','constraints'},{false,false,false});
@@ -101,7 +101,7 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                     % obj.mu_u = zeros(obj.n_u, N-1);
 
                 elseif obj.border
-                    obj.C_i = diag([obj.rho_u_i]);
+                    % obj.C_i = diag([obj.rho_u_i]);
 
                     obj.x = sdpvar(obj.n_x, N);             
                     obj.u = sdpvar(obj.n_u, N-1);
@@ -112,7 +112,7 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                     obj.mu_x = zeros(obj.n_x, N);           
 
                 else
-                    obj.C_i = diag([obj.rho_x_i; obj.rho_u_i]);
+                    % obj.C_i = diag([obj.rho_x_i; obj.rho_u_i]);
                     
                     obj.x = sdpvar(obj.n_x, N);             
                     obj.u = sdpvar(obj.n_u, N-1);            

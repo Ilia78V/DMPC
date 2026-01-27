@@ -45,13 +45,13 @@ x0   = 0.5;    % all tanks start at 0.5 m
 xdes = 2.0;    % desired for agent 4
 
 %% Approximation flags
-appr = true;
+appr = false;
 def_appr = false;
 approx = containers.Map({'cost','dynamics','constraints'},{appr,appr,appr});
 def_approx = containers.Map({'cost','dynamics','constraints'},{appr,appr,appr});
 
 %% Build Agent_data objects
-rho_init = 0.005;
+rho_init = 0.5;
 % rhoD  = 0.5;     % default-scale (x,u consensus)
 % rhoNA = 0.005;   % NA-scale (u,v consensus)
 % rhoB  = 0.05;    % bridge-scale for boundary u
@@ -323,6 +323,7 @@ end
 %% Create solutions & solver
 sols = cellfun(@(a) Solution(a, dt_sample), agents,'UniformOutput',false);
 solver = ADMM_Solver('ipopt', agents, sols, 120, 1e-2);
+solver.ADMM_penaltyAdapta = false;
 
 %% Main loop
 tic_step = [];
@@ -388,6 +389,6 @@ sgtitle("t10 - state - reg approximation _ penalty = " + rho_init);
 
 % add(repo, filesToAdd);                 % stage all modified files
 
-% commit(repo, Message=" modify update_residual in ADMM_solver for regional appprox case");
+% commit(repo, Message="update the ");
 
 % push(repo);

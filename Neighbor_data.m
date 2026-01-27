@@ -77,13 +77,13 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
                 obj.n_x = n_x;            
                 obj.n_u = n_u;      
 
-                obj.rho_x_ij = rho_init * ones(obj.agent_data.n_x, 1);       
-                obj.rho_u_ij = rho_init * ones(obj.agent_data.n_u, 1);
-                obj.rho_v_ij = rho_init * ones(obj.agent_data.n_x, 1);
-                obj.rho_x_ji = rho_init * ones(n_x, 1);       
-                obj.rho_u_ji = rho_init * ones(n_u, 1);
-                obj.rho_v_ji = rho_init * ones(n_x, 1);
-                obj.rho_v_i = rho_init * ones(obj.agent_data.n_x, 1);
+                obj.rho_x_ij = rho_init * ones(obj.agent_data.n_x, obj.N);       
+                obj.rho_u_ij = rho_init * ones(obj.agent_data.n_u, obj.N-1);
+                obj.rho_v_ij = rho_init * ones(obj.agent_data.n_x, obj.N);
+                obj.rho_x_ji = rho_init * ones(n_x, obj.N);       
+                obj.rho_u_ji = rho_init * ones(n_u, obj.N-1);
+                obj.rho_v_ji = rho_init * ones(n_x, obj.N);
+                obj.rho_v_i  = rho_init * ones(obj.agent_data.n_x, obj.N);
 
                 if false %obj.agent_data.approximation('dynamics') == false
                     % obj.C_ij = diag([obj.rho_x_ij; obj.rho_u_ij]);                  
