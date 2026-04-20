@@ -45,13 +45,13 @@ x0   = 0.5;    % all tanks start at 0.5 m
 xdes = 2.0;    % desired for agent 4
 
 %% Approximation flags
-appr = false;
+appr = true;
 def_appr = false;
 approx = containers.Map({'cost','dynamics','constraints'},{appr,appr,appr});
-def_approx = containers.Map({'cost','dynamics','constraints'},{appr,appr,appr});
+def_approx = containers.Map({'cost','dynamics','constraints'},{def_appr,def_appr,def_appr});
 
 %% Build Agent_data objects
-rho_init = 0.5;
+rho_init = 20;
 % rhoD  = 0.5;     % default-scale (x,u consensus)
 % rhoNA = 0.005;   % NA-scale (u,v consensus)
 % rhoB  = 0.05;    % bridge-scale for boundary u
@@ -240,7 +240,8 @@ h_ij_N = @(x, xn, t) 0;
 % Define neighbor pairs as [agent_id, neighbor_id]
 neighbor_pairs = [1 2; 2 1; 2 3; 3 2; 3 4; 4 3];
 coup_f = {f_coup; f_coup; f_coup; f_coup; f_coup_t; f_coup_t};
-app = {def_approx; def_approx; def_approx; def_approx; approx; approx};
+% app = {def_approx; def_approx; def_approx; def_approx; approx; approx};
+app = {approx; approx; def_approx; def_approx; def_approx; def_approx};
 
 % rho = {50, 50, 20, 20, 20, 20};
 rho = {rho_init, rho_init, rho_init, rho_init, rho_init, rho_init};
@@ -322,8 +323,8 @@ end
 
 %% Create solutions & solver
 sols = cellfun(@(a) Solution(a, dt_sample), agents,'UniformOutput',false);
-solver = ADMM_Solver('ipopt', agents, sols, 120, 1e-2);
-solver.ADMM_penaltyAdapta = false;
+solver = ADMM_Solver('ipopt', agents, sols, 120, 1e-3);
+solver.ADMM_penaltyAdapt = false;
 
 %% Main loop
 tic_step = [];
@@ -353,7 +354,8 @@ for i=1:4
     ylim([0 3]); 
 end
 legend('primal','dual');
-sgtitle("t10 - residual - reg approximation _ penalty = " + rho_init);
+sgtitle("t10 - residual - approximation _ penalty = " + rho_init +...
+    " with ADMM_penaltyAdapt = " + solver.ADMM_penaltyAdapt);
 
 %% Plot
 figure;
@@ -380,15 +382,15 @@ for i=1:4
 end
 ylabel('Cost'); xlabel('Time (s)');
 title('Cost per agent');
-sgtitle("t10 - state - reg approximation _ penalty = " + rho_init);
+sgtitle("t10 - state - approximation _ penalty = " + rho_init);
 
 %% (Optional) Save the results
-% save('D:\studies\FAU\programming project\DMPC-master\DMPC-master\tank_chain\test11 (full simulation time)\Approx_p0.005.mat');
+% save('D:\studies\FAU\programming project\DMPC-master\DMPC-master\tank_chain\test13 (full simulation time, new convergence criterion)\noApprox_p100_noAdapt.mat');
 
 % filesToAdd = repo.ModifiedFiles;       % returns a string array
 
 % add(repo, filesToAdd);                 % stage all modified files
 
-% commit(repo, Message="update the ");
+% commit(repo, Message="update the update_residual to have optional ADMM_penaltyAdaptation");
 
 % push(repo);
