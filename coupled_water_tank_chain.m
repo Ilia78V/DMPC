@@ -391,6 +391,6 @@ sgtitle("t10 - state - approximation _ penalty = " + rho_init);
 
 % add(repo, filesToAdd);                 % stage all modified files
 
-% commit(repo, Message="update the update_residual to have optional ADMM_penaltyAdaptation");
+% commit(repo, Message="finalize project implementation");
 
 % push(repo);
