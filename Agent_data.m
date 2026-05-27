@@ -1,7 +1,7 @@
 classdef Agent_data < handle & matlab.mixin.Copyable
     properties
         agent;
-        border; % has three modes: 0: an active or inactive agent, 1: an inner boundry agent(approximation region), 2: an outer boundry agent (default region)
+        border; % has three modes: 0: an active or inactive agent, 1: an inner boundary agent(approximation region), 2: an outer boundary agent (default region)
 
         % Time Variable
         t0;             % Initial time step
@@ -30,7 +30,6 @@ classdef Agent_data < handle & matlab.mixin.Copyable
         % Define rho values for local penalties
         rho_x_i;        % Local state penalty. Example:  = 10 * ones(n_x, 1)
         rho_u_i;        % Local control penalty
-        % rho_v_i;
 
         % Coupling parameters based on rho values
         C_i;            % Local coupling penalties
@@ -51,10 +50,6 @@ classdef Agent_data < handle & matlab.mixin.Copyable
         dual_residual;
         cost;
         approximation;
-        
-        %% to be added
-        % % Vector containing external influence
-        % v;
     end
     
     methods
@@ -82,7 +77,6 @@ classdef Agent_data < handle & matlab.mixin.Copyable
         
                 obj.rho_x_i = rho_init * ones(obj.n_x, N);       
                 obj.rho_u_i = rho_init * ones(obj.n_u, N-1);
-                % obj.rho_v_i = rho_init * ones(obj.n_x, 1);
 
                 obj.approximation = containers.Map({'cost','dynamics','constraints'},{false,false,false});
                 
@@ -95,11 +89,6 @@ classdef Agent_data < handle & matlab.mixin.Copyable
                     obj.mu_x = zeros(obj.n_x, N);           
                     obj.mu_u = zeros(obj.n_u, N-1);
                     
-                    % obj.x = sdpvar(obj.n_x, N);             
-                    % obj.u = sdpvar(obj.n_u, N-1);
-                    % obj.z_u = zeros(obj.n_u, N-1);
-                    % obj.mu_u = zeros(obj.n_u, N-1);
-
                 elseif obj.border
                     % obj.C_i = diag([obj.rho_u_i]);
 
@@ -158,17 +147,6 @@ classdef Agent_data < handle & matlab.mixin.Copyable
             assign(obj.u, u0);
             
         end
-
-        %% Shift
-        % function shift(obj, k)
-        % 
-        %     obj.z_x = [obj.z_x(:, k+1:end), obj.z_x(:, end)]; % zeros(size(obj.z_x,1), k)];
-        %     obj.z_u = [obj.z_u(:, k+1:end), obj.z_u(:, end)];
-        %     obj.mu_x = [obj.mu_x(:, k+1:end), obj.mu_x(:, end)];
-        %     obj.mu_u = [obj.mu_u(:, k+1:end), obj.mu_u(:, end)];
-        % 
-        % 
-        % end
         
         %% Set edge for tuning penalty parameters
         function setEdge(obj, rho_x, rho_u)

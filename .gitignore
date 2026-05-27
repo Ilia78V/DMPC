@@ -28,6 +28,7 @@ codegen/
 
 #some folder
 profiler_report/
+test/
 
 # Cache files
 *.slxc

@@ -22,13 +22,6 @@ classdef ADMM_Solver
         dual_residual;
         N_pr;
 
-        approximation;
-        % % ADMM states
-        % x_opt;
-        % u_opt;
-        % x_neighbors_opt;
-        % u_neighbors_opt;
-
         % Penalty parameters
         ADMM_penaltyAdapt;
         ADMM_PenaltyIncreaseFactor;
@@ -47,8 +40,8 @@ classdef ADMM_Solver
             obj.solutions = solutions;
             obj.max_iterations = max_iterations;
             obj.convergence_tolerance = convergence_tolerance;
-            obj.slackWeight = 1e8;   % tune this
-            obj.boundary_tol= 1e-2;% tune this
+            obj.slackWeight = 1e8;      % Weight for optional slack-variable relaxation of state bounds.
+            obj.boundary_tol= 1e-2;     % Tolerance used before projecting shifted states back into bounds.
 
             obj.agent_map = containers.Map('KeyType', 'double', 'ValueType', 'any');
             for i = 1:length(obj.agents)
@@ -59,16 +52,11 @@ classdef ADMM_Solver
             for i = 1:length(obj.solutions)
                 obj.solution_map(obj.solutions{i}.id) = obj.solutions{i};
             end
+            
+            % Classify agents
+            obj.set_border_agents();
 
-            % obj.approximation = approximation;
-            obj.set_boarder_agents();
-
-            % obj.approximation = containers.Map('KeyType', 'char', 'ValueType', 'logical');
-            % obj.approximation('cost') = false;
-            % obj.approximation('dynamics') = false;
-            % obj.approximation('constraints') = false;
-
-            % Residuals for convergence check
+            % Number of scalar primal-residual terms used for normalization
             obj.N_pr = zeros(1, length(agents));
             obj = obj.count_N_pr();
 
@@ -83,7 +71,8 @@ classdef ADMM_Solver
         end
 
         %% Set border agents
-        function set_boarder_agents(obj)
+        % Classify agents at the boundary of the dynamics-approximation region
+        function set_border_agents(obj)
             for agent = obj.agents
                 d = agent{1}.data;
                 d.border = 0;
@@ -272,58 +261,8 @@ classdef ADMM_Solver
                 end
                 % cost = cost + obj.slackWeight * sum(s_x, 'all');
 
-                % % -----Define the ADMM augmented cost function-----
-                % cost = agent.V_i(d.x(:,d.N)); % Terminal cost
-                % for k = 1:d.N-1
-                %     % Local stage cost
-                %     cost = cost + d.dt * agent.l_i(d.x(:,k), d.u(:,k), d.t(k));
-                % 
-                %     % Local coupling terms and Lagrange multipliers (scaled by d.dt for integral form)
-                %     z_local = [d.x(:,k); d.u(:,k)];
-                %     z_coupling = [d.z_x(:,k); d.z_u(:,k)];
-                %     mu_local = [d.mu_x(:,k); d.mu_u(:,k)];
-                %     cost = cost + d.dt * mu_local' * (z_coupling - z_local);
-                %     cost = cost + (d.dt/2) * (z_coupling - z_local)' * d.C_i * (z_coupling - z_local);
-                % 
-                %     % Neighbor coupling terms (scaled by d.dt for integral form)
-                %     for j = 1:length(agent.sending_neighbors)
-                %         nd = agent.sending_neighbors{j}.data;
-                %         z_neighbor = [nd.x_ji(:,k); nd.u_ji(:,k)];
-                %         z_coupling_neighbor = [nd.z_x_j(:,k); nd.z_u_j(:,k)];
-                %         mu_neighbor = [nd.mu_x_ji(:,k); nd.mu_u_ji(:,k)];
-                %         cost = cost + d.dt * mu_neighbor' * (z_coupling_neighbor - z_neighbor);
-                %         cost = cost + (d.dt/2) * (z_coupling_neighbor - z_neighbor)' * nd.C_ji * (z_coupling_neighbor - z_neighbor);
-                %     end
-                % end
-                % % Final state costs
-                % % Local coupling terms and Lagrange multipliers (scaled by d.dt for integral form)
-                % z_local = [d.x(:,d.N)];
-                % z_coupling = [d.z_x(:,d.N)];
-                % mu_local = [d.mu_x(:,d.N)];
-                % cost = cost + d.dt * mu_local' * (z_coupling - z_local);
-                % cost = cost + (d.dt/2) * (z_coupling - z_local)' * diag(d.rho_x_i) * (z_coupling - z_local);
-                % 
-                % % Neighbor coupling terms (scaled by d.dt for integral form)
-                % for j = 1:length(agent.sending_neighbors)
-                %     nd = agent.sending_neighbors{j}.data;
-                %     z_neighbor = [nd.x_ji(:,d.N)];
-                %     z_coupling_neighbor = [nd.z_x_j(:,d.N)];
-                %     mu_neighbor = [nd.mu_x_ji(:,d.N)];
-                %     cost = cost + d.dt * mu_neighbor' * (z_coupling_neighbor - z_neighbor);
-                %     cost = cost + (d.dt/2) * (z_coupling_neighbor - z_neighbor)' * diag(nd.rho_x_ji) * (z_coupling_neighbor - z_neighbor);
-                % end
-
-                % % -----Update the previous data-----
-                % agent.previous_data.x = d.x; 
-                % agent.previous_data.u = d.u;
-                % 
-                % for j = 1:length(agent.sending_neighbors)
-                %     agent.sending_neighbors{j}.previous_data.x_ji = agent.sending_neighbors{j}.data.x_ji;
-                %     agent.sending_neighbors{j}.previous_data.u_ji = agent.sending_neighbors{j}.data.u_ji;
-                % end
-
+                
                 % -----Solve the optimization problem-----
-
                 options = sdpsettings('solver', obj.optimizer, 'verbose', 1, 'debug', 0);
 
                 
@@ -348,24 +287,7 @@ classdef ADMM_Solver
                     disp(['Solver returned an unknown status: ', yalmiperror(sol.problem)]);
                 end
 
-                
-                % -----Update cost-----
-                % cost = sdpvar(1,1);
-                % assign(cost, [0]);
                 d.cost = [d.cost, value(cost)];
-
-                % Approximation of neighbor dynamics (external influence)
-                % if obj.approximation('dynamics')
-                %     for neighbor = agent.receiving_neighbors
-                %         nd = neighbor{1}.data;
-                %         for se_neighbor = agent.sending_neighbors
-                %             if neighbor{1}.id ~= se_neighbor{1}.id
-                %                 nd.v_i = nd.v_i + value(neighbor{1}.f_ij(nd.x_ji, nd.u_ji, d.x, d.u));
-                %             end
-                %         end
-                %     end
-                % end
-
 
                 if d.approximation('dynamics') || d.border
                     for neighbor = agent.sending_neighbors
@@ -375,16 +297,6 @@ classdef ADMM_Solver
                         end
                     end
                 end
-                
-                % x_opt = value(d.x);
-                % u_opt = value(d.u);
-                % x_neighbors_opt = cellfun(@value, d.x_ji, 'UniformOutput', false);
-                % u_neighbors_opt = cellfun(@value, d.u_ji, 'UniformOutput', false);
-                % 
-                % agent.update_agentState(x_opt, u_opt);
-                % for j = 1:length(agent.sending_neighbors)
-                %     agent.sending_neighbors{j}.update_local_copies(x_neighbors_opt{j}, u_neighbors_opt{j});
-                % end
             end
         end
 
@@ -557,12 +469,6 @@ classdef ADMM_Solver
                             ag.data.x_ij = value(neighbor{1}.data.x_ji);                            
                         end
                     end
-
-                    % if obj.approximation('dynamics') || 
-                    %     ag.data.v_ij = value(neighbor{1}.data.v_ji);
-                    % else
-                    %     ag.data.x_ij = value(neighbor{1}.data.x_ji);
-                    % end
                 end
             end
         end
@@ -760,6 +666,7 @@ classdef ADMM_Solver
                 %                   (d.mu_u - pd.mu_u)]);
                 % end 
                 % is_converged = is_converged && (error <= obj.convergence_tolerance);
+
                 is_converged = is_converged && ((d.primal_residual(end)/(obj.N_pr(i)^0.5)) <= obj.convergence_tolerance);
             end
         end
@@ -828,14 +735,6 @@ classdef ADMM_Solver
                     for i = 1: length(agent{1}.sending_neighbors)
                         nd = agent{1}.sending_neighbors{i}.data;
                         npd = agent{1}.sending_neighbors{i}.previous_data;
-                        
-                        % if initial == true
-                        %     neighbor_pr_x = zeros(size(nd.z_x_j));
-                        %     neighbor_pr_u = zeros(size(nd.z_u_j));
-                        %     neighbor_dr_x = zeros(size(nd.z_x_j));
-                        %     neighbor_dr_u = zeros(size(nd.z_u_j));
-                        %     initial = false;
-                        % end
 
                         % ===== Input =====
                         %primal residual
@@ -857,12 +756,7 @@ classdef ADMM_Solver
                         % Update rho
                         if obj.ADMM_penaltyAdapt, nd.rho_v_ji = adaptPenaltyParameter(obj, neighbor_pr_v{i}, neighbor_dr_v{i}, nd.rho_v_ji); end
                     end
-    
-                    % neighbor_pr_x = norm(vecnorm(neighbor_pr_x, 2, 1), 1)/d.N;
-                    % neighbor_pr_u = norm(vecnorm(neighbor_pr_u, 2, 1), 1)/(d.N - 1);
-                    % neighbor_dr_x = norm(vecnorm(neighbor_dr_x, 2, 1), 1)/d.N;
-                    % neighbor_dr_u = norm(vecnorm(neighbor_dr_u, 2, 1), 1)/(d.N - 1);
-    
+        
                     d.primal_residual = [d.primal_residual, norm([ADMM_local_pr_v; ADMM_local_pr_u; ADMM_neighbor_pr_v; ADMM_neighbor_pr_u], 2)];
                     d.dual_residual = [d.dual_residual, norm([ADMM_local_dr_v; ADMM_local_dr_u; ADMM_neighbor_dr_v; ADMM_neighbor_dr_u], 2)];                 
                 else
@@ -889,12 +783,6 @@ classdef ADMM_Solver
                     % Update rho
                     if obj.ADMM_penaltyAdapt, d.rho_x_i = adaptPenaltyParameter(obj, local_pr_x, local_dr_x, d.rho_x_i); end
 
-                    % initial = true;
-                    % % **Ensure neighbor variables are initialized** before the loop
-                    % neighbor_pr_x = 0;
-                    % neighbor_pr_u = 0;
-                    % neighbor_dr_x = 0;
-                    % neighbor_dr_u = 0;
                     neighbor_pr_x = cell(1, length(agent{1}.sending_neighbors));
                     neighbor_pr_u = cell(1, length(agent{1}.sending_neighbors));
                     neighbor_dr_x = cell(1, length(agent{1}.sending_neighbors));
@@ -910,24 +798,7 @@ classdef ADMM_Solver
                         neighbor = agent{1}.sending_neighbors{i};
                         nd = neighbor.data;
                         npd = neighbor.previous_data;
-                        
-                        % if initial == true
-                        %     neighbor_pr_x = zeros(size(nd.z_x_j));
-                        %     neighbor_pr_u = zeros(size(nd.z_u_j));
-                        %     neighbor_dr_x = zeros(size(nd.z_x_j));
-                        %     neighbor_dr_u = zeros(size(nd.z_u_j));
-                        %     initial = false;
-                        % end
-    
-                        %  %primal residual
-                        %  neighbor_pr_x = neighbor_pr_x + (value(nd.x_ji) - nd.z_x_j);
-                        %  neighbor_pr_u = neighbor_pr_u + (value(nd.u_ji) - nd.z_u_j);
-                        % 
-                        % %dual residual
-                        %  neighbor_dr_x = neighbor_dr_x + diag(npd.rho_x_ji) * (nd.z_x_j - npd.z_x_j);
-                        %  neighbor_dr_u = neighbor_dr_u + diag(npd.rho_u_ji) * (nd.z_u_j - npd.z_u_j); 
-
-
+              
                         % ===== Input =====
                         %primal residual
                         neighbor_pr_u{i} = abs(value(nd.u_ji) - nd.z_u_j);
@@ -946,16 +817,8 @@ classdef ADMM_Solver
                         neighbor_dr_x{i} = abs(npd.rho_x_ji .* (nd.z_x_j - npd.z_x_j));
                         ADMM_neighbor_dr_x(i) = norm(neighbor_dr_x{i}, "fro");
                         % Update rho
-                        if obj.ADMM_penaltyAdapt, nd.rho_x_ji = adaptPenaltyParameter(obj, neighbor_pr_x{i}, neighbor_dr_x{i}, nd.rho_x_ji); end                        
-
-                        % neighbor_pr_u(i) = norm(vecnorm( (value(nd.u_ji) - nd.z_u_j) , 2, 1), 1)/(d.N - 1);
-                        % neighbor_pr_v(i) = norm(vecnorm( (value(nd.v_ji) - nd.z_v_j) , 2, 1), 1)/d.N;
+                        if obj.ADMM_penaltyAdapt, nd.rho_x_ji = adaptPenaltyParameter(obj, neighbor_pr_x{i}, neighbor_dr_x{i}, nd.rho_x_ji); end
                     end
-                    % 
-                    % neighbor_pr_x = norm(vecnorm(neighbor_pr_x, 2, 1), 1)/d.N;
-                    % neighbor_pr_u = norm(vecnorm(neighbor_pr_u, 2, 1), 1)/(d.N - 1);
-                    % neighbor_dr_x = norm(vecnorm(neighbor_dr_x, 2, 1), 1)/d.N;
-                    % neighbor_dr_u = norm(vecnorm(neighbor_dr_u, 2, 1), 1)/(d.N - 1);
     
                     d.primal_residual = [d.primal_residual, norm([ADMM_local_pr_x; ADMM_local_pr_u; ADMM_neighbor_pr_x; ADMM_neighbor_pr_u], 2)];
                     d.dual_residual = [d.dual_residual, norm([ADMM_local_dr_x; ADMM_local_dr_u; ADMM_neighbor_dr_x; ADMM_neighbor_dr_u], 2)];
@@ -1130,9 +993,6 @@ classdef ADMM_Solver
                 % Initialize agent
                 d.initialize(x, k)
                 
-                % Shift 
-                % agent{1}.data.shift(k);
-
                 % Initialize and shift neighbors
                 for neighbor = agent{1}.neighbors
                     neighbor{1}.data.initialize(k);

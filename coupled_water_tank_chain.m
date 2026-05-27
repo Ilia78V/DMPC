@@ -4,7 +4,6 @@ clear; clc;
 
 %% (Optional) Add YALMIP/IPOPT paths
 if false
-    %originalPath = 'W:\proj\DMPC proj\matlab';
     originalPath = 'D:\studies\FAU\programming project\DMPC-master\DMPC-master';
     addpath(genpath([originalPath, '\YALMIP-master']));
     optiPath = [originalPath, '\OPTI-master'];
@@ -52,32 +51,19 @@ def_approx = containers.Map({'cost','dynamics','constraints'},{def_appr,def_appr
 
 %% Build Agent_data objects
 rho_init = 20;
-% rhoD  = 0.5;     % default-scale (x,u consensus)
-% rhoNA = 0.005;   % NA-scale (u,v consensus)
-% rhoB  = 0.05;    % bridge-scale for boundary u
 
 n_x = 1; n_u = 1;
 x_min = 0;  x_max = 3;
 u_min = 0;  u_max = +1e3;
-% rho = {20, 20, 20, 20};
 rho = {rho_init, rho_init, rho_init, rho_init};
-% rho = {100*rho_init, rho_init, rho_init, rho_init};
 agentData = cell(1,4);
-% app = {approx, approx, def_approx, def_approx};
 for i=1:4
     cp = cost_params{i};
     xr = xdes;  % only agent 4 truly tracks xdes
     agentData{i} = Agent_data( ...
         i, n_x, n_u, t0, T, N, x0, xr, ...
         x_min, x_max, u_min, u_max, rho{i});
-    %tunning rho
-    % agentData{i}.rho_u_i = agentData{i}.rho_u_i/100;
 end
-% Tuning rho
-% agentData{1}.setEdge(rhoD, rhoD);
-% agentData{1}.setEdge(rhoD, rhoB);
-% agentData{1}.setEdge(rhoD, rhoB);
-% agentData{1}.setEdge(rhoNA, rhoNA);
 
 %% Define dynamics and costs
 f_agent = cellfun(@(p) @(x,u) (p(2)*u - p(3))/p(1), params, 'UniformOutput',false);
@@ -105,18 +91,6 @@ for i=1:4
 end
 
 %% Coupling: smooth pipe flow between neighbors
-% p9 = [ 
-%     -1.230e-04, ... % d^9
-%      0.000e+00, ... % d^8
-%      2.750e-03, ... % d^7
-%     -0.000e+00, ... % d^6
-%     -3.150e-02, ... % d^5
-%      0.000e+00, ... % d^4
-%      1.512e-01, ... % d^3
-%     -0.000e+00, ... % d^2
-%      4.750e-01, ... % d^1
-%      0.000e+00    ... % d^0
-% ];
 p9 = [
      1.96577792e-04, ... % d^9
      1.40946282e-17, ... % d^8  ~0
@@ -224,28 +198,12 @@ h_ij_N = @(x, xn, t) 0;
 
 %% Construct Neighbor objects
 
-% % Agent 1 couplings:
-% neighbor_1_from2 = Neighbor(1, agents{2}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(1, n_x, n_u, agents{2}, rho_init));
-% neighbor_1_from3 = Neighbor(1, agents{3}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(1, n_x, n_u, agents{3}, rho_init));
-% % Agent 2 couplings:
-% neighbor_2_from1 = Neighbor(2, agents{1}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(2, n_x, n_u, agents{1}, rho_init));
-% neighbor_2_from4 = Neighbor(2, agents{4}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(2, n_x, n_u, agents{4}, rho_init));
-% % Agent 3 couplings:
-% neighbor_3_from1 = Neighbor(3, agents{1}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(3, n_x, n_u, agents{1}, rho_init));
-% neighbor_3_from4 = Neighbor(3, agents{4}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(3, n_x, n_u, agents{4}, rho_init));
-% % Agent 4 couplings:
-% neighbor_4_from2 = Neighbor(4, agents{2}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(4, n_x, n_u, agents{2}, rho_init));
-% neighbor_4_from3 = Neighbor(4, agents{3}, true, true, f_coup, g_ij, g_ij_N, h_ij, h_ij_N, V_ij, l_ij, Neighbor_data(4, n_x, n_u, agents{3}, rho_init));
-
 % Define neighbor pairs as [agent_id, neighbor_id]
 neighbor_pairs = [1 2; 2 1; 2 3; 3 2; 3 4; 4 3];
 coup_f = {f_coup; f_coup; f_coup; f_coup; f_coup_t; f_coup_t};
-% app = {def_approx; def_approx; def_approx; def_approx; approx; approx};
 app = {approx; approx; def_approx; def_approx; def_approx; def_approx};
 
-% rho = {50, 50, 20, 20, 20, 20};
 rho = {rho_init, rho_init, rho_init, rho_init, rho_init, rho_init};
-% rho = {100*rho_init, rho_init, rho_init, rho_init, rho_init, rho_init};
 
 neighbor_data = cell(size(neighbor_pairs,1), 1);
 neighbors = cell(size(neighbor_pairs,1), 1);  % to store neighbor objects
@@ -258,41 +216,6 @@ for i = 1:size(neighbor_pairs,1)
 
     neighbor_data{i} = Neighbor_data(neighbor_id, n_x, n_u, agents{agent_id}, rho{i}, app{i});
 
-    % if i ==1
-    %     neighbor_data{i}.rho_x_ij = neighbor_data{i}.rho_u_ij*2.5;
-    %     neighbor_data{i}.rho_u_ij = neighbor_data{i}.rho_u_ij*2.5;
-    %     neighbor_data{i}.rho_v_ij = neighbor_data{i}.rho_u_ij*2.5;
-    % 
-    %     neighbor_data{i}.rho_x_ji = neighbor_data{i}.rho_u_ji*2.5;
-    %     neighbor_data{i}.rho_u_ji = neighbor_data{i}.rho_u_ji*2.5;
-    %     neighbor_data{i}.rho_v_ji = neighbor_data{i}.rho_u_ji*2.5;
-    % 
-    %     neighbor_data{i}.rho_v_i = neighbor_data{i}.rho_v_i*2.5;
-    % 
-    % elseif i ==2
-    %     neighbor_data{i}.rho_x_ij = neighbor_data{i}.rho_u_ij*2.5;
-    %     neighbor_data{i}.rho_u_ij = neighbor_data{i}.rho_u_ij*2.5;
-    %     neighbor_data{i}.rho_v_ij = neighbor_data{i}.rho_u_ij*2.5;
-    % 
-    %     neighbor_data{i}.rho_x_ji = neighbor_data{i}.rho_u_ji*2.5;
-    %     neighbor_data{i}.rho_u_ji = neighbor_data{i}.rho_u_ji*2.5;
-    %     neighbor_data{i}.rho_v_ji = neighbor_data{i}.rho_u_ji*2.5;
-    % 
-    %     neighbor_data{i}.rho_v_i = neighbor_data{i}.rho_v_i*2.5;
-    % 
-    % elseif i ==3
-    %     neighbor_data{i}.rho_x_ij = neighbor_data{i}.rho_u_ij*2.5;
-    %     neighbor_data{i}.rho_u_ij = neighbor_data{i}.rho_u_ij*2.5;
-    %     neighbor_data{i}.rho_v_ij = neighbor_data{i}.rho_u_ij*2.5;
-    % 
-    %     neighbor_data{i}.rho_v_i = neighbor_data{i}.rho_v_i*2.5;
-    % 
-    % elseif i ==4
-    %     neighbor_data{i}.rho_x_ji = neighbor_data{i}.rho_u_ji*2.5;
-    %     neighbor_data{i}.rho_u_ji = neighbor_data{i}.rho_u_ji*2.5;
-    %     neighbor_data{i}.rho_v_ji = neighbor_data{i}.rho_u_ji*2.5;
-    % end
-
     neighbors{i} = Neighbor(neighbor_id, ...
                             agents{agent_id}, ...
                             true, true, ...
@@ -304,22 +227,6 @@ for i = 1:size(neighbor_pairs,1)
     % Register neighbors
     agents{agent_id}.register_neighbors({neighbors{i}});
 end
-
-% Tunning rho
-% neighbor_data{1}.setEdge(rhoD, rhoD, rhoNA);
-% neighbor_data{2}.setEdge(rhoD, rhoD, rhoNA);
-% 
-% neighbor_data{3}.setEdge(rhoD, rhoB, rhoNA);
-% neighbor_data{4}.setEdge(rhoD, rhoB, rhoNA);
-% 
-% neighbor_data{5}.setEdge(rhoD, rhoNA, rhoNA);
-% neighbor_data{6}.setEdge(rhoD, rhoNA, rhoNA);
-
-%% Register neighbors
-% agents{1}.register_neighbors({neighbor_2_from1, neighbor_3_from1});
-% agents{2}.register_neighbors({neighbor_1_from2, neighbor_4_from2});
-% agents{3}.register_neighbors({neighbor_1_from3, neighbor_4_from3});
-% agents{4}.register_neighbors({neighbor_2_from4, neighbor_3_from4});
 
 %% Create solutions & solver
 sols = cellfun(@(a) Solution(a, dt_sample), agents,'UniformOutput',false);
@@ -388,6 +295,8 @@ sgtitle("t10 - state - approximation _ penalty = " + rho_init);
 % save('D:\studies\FAU\programming project\DMPC-master\DMPC-master\tank_chain\test13 (full simulation time, new convergence criterion)\noApprox_p100_noAdapt.mat');
 
 % filesToAdd = repo.ModifiedFiles;       % returns a string array
+
+% existingFiles = filesToAdd(isfile(filesToAdd));
 
 % add(repo, filesToAdd);                 % stage all modified files
 

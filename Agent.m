@@ -96,26 +96,7 @@ classdef Agent < handle
                     obj.data.approximation('constraints') = true;
                     obj.const_approx_neighbors{end+1} = new_neighbors{i};
                 end
-                % if ~obj.data.approximation('dynamics') || new_neighbors{i}.data.agent_data.approximation('dynamics')
-                %     obj.border_ag = true;
-                % end
             end
         end
-        %% Update agent state
-        % function update_agentState(obj, x_opt, u_opt)
-        %     obj.previous_agentState = obj.agentState;
-        %     obj.agentState.x = x_opt;
-        %     obj.agentState.u = u_opt;
-        % end
-        % 
-        % % %% Get approximation data
-        % % function get_approx_data(obj, approx)
-        % %     obj.data.approximation = approx;
-        % % end
-        % 
-        % %%
-        % function register_solver(obj, solver)
-        %     obj.solver = solver;
-        % end
     end
 end

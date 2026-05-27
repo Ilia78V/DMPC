@@ -46,16 +46,5 @@ classdef Neighbor < handle
             obj.data = neighbor_data;
             obj.previous_data = copy(neighbor_data);            
         end
-
-        % %% Update local copies for neighbor
-        % function update_local_copies (obj, x_neighbors_opt, u_neighbors_opt)
-        %     obj.local_copies.x = x_neighbors_opt;
-        %     obj.local_copies.u = u_neighbors_opt;
-        % end
-        % %% Update neighbor local copies
-        % function update_neighbor_local_copies()
-        %     obj.local_copies.x = x_neighbors_opt;
-        %     obj.local_copies.u = u_neighbors_opt;
-        % end
     end
 end

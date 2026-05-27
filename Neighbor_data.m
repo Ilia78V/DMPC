@@ -54,10 +54,6 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
         mu_u_ji;        % Neighbor Lagrange multiplier for control
         mu_v_ji;
         mu_v_i;
-       
-        %% to be added
-        % % Vector containing external influence
-        % v;
     end
     
     methods
@@ -66,7 +62,7 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
             if nargin > 0
                 obj.id = id;
                 obj.agent_data = agent.data;
-                obj.approximation = approximation; %approx = containers.Map({'cost','dynamics','constraints'},{flag,flag,flag});
+                obj.approximation = approximation;
 
                 obj.t0 = obj.agent_data.t0;
                 obj.t = linspace(obj.agent_data.t0, obj.agent_data.T, obj.agent_data.N);   
@@ -245,68 +241,8 @@ classdef Neighbor_data < handle & matlab.mixin.Copyable
                     obj.mu_x_ij = [obj.mu_x_ij, obj.mu_x_ij(:, end)];
                 end
             end
-
-%%old  oneeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
-            % if obj.agent_data.approximation('dynamics')
-            %     v_ji0 = value(obj.v_ji(:, k+1:end));
-            % 
-            %     obj.v_ij   = [obj.v_ij(:, k+1:end)];
-            %     obj.z_v_j  = [obj.z_v_j(:, k+1:end)];
-            %     obj.mu_v_ij = [obj.mu_v_ij(:, k+1:end)];
-            %     obj.mu_v_ji = [obj.mu_v_ji(:, k+1:end)];
-            % 
-            % else
-            %     obj.x_ij   = [obj.x_ij(:, k+1:end)];
-            %     obj.z_x_j  = [obj.z_x_j(:, k+1:end)];
-            %     obj.mu_x_ij = [obj.mu_x_ij(:, k+1:end)];
-            %     obj.mu_x_ji = [obj.mu_x_ji(:, k+1:end)];
-            % end
-            % 
-            % for i=1:k
-            %     x_ji0 = [x_ji0, x_ji0(:, end)];
-            %     u_ji0 = [u_ji0, u_ji0(:, end)];
-            % 
-            %     obj.u_ij   = [obj.u_ij,   obj.u_ij(:, end)];
-            %     obj.z_u_j  = [obj.z_u_j,   obj.z_u_j(:, end)];
-            %     obj.mu_u_ij = [obj.mu_u_ij, obj.mu_u_ij(:, end)];
-            %     obj.mu_u_ji = [obj.mu_u_ji,  obj.mu_u_ji(:, end)];
-            % 
-            %     if obj.agent_data.approximation('dynamics')
-            %         v_ji0 = [v_ji0, v_ji0(:, end)];
-            % 
-            %         obj.v_ij   = [obj.v_ij,  obj.v_ij(:, end)];
-            %         obj.z_v_j  = [obj.z_v_j,   obj.z_v_j(:, end)];
-            %         obj.mu_v_ij = [obj.mu_v_ij, obj.mu_v_ij(:, end)];
-            %         obj.mu_v_ji = [obj.mu_v_ji, obj.mu_v_ji(:, end)];
-            %     else
-            %         obj.x_ij   = [obj.x_ij,  obj.x_ij(:, end)];
-            %         obj.z_x_j  = [obj.z_x_j,   obj.z_x_j(:, end)];
-            %         obj.mu_x_ij = [obj.mu_x_ij, obj.mu_x_ij(:, end)];
-            %         obj.mu_x_ji = [obj.mu_x_ji, obj.mu_x_ji(:, end)];
-            %     end
-            % end
-            % 
-            % assign(obj.x_ji, x_ji0);
-            % assign(obj.u_ji, u_ji0);
-            % if obj.agent_data.approximation('dynamics')
-            %     assign(obj.v_ji, v_ji0);
-            % end
-            % 
-            % %obj.x_ji = sdpvar(obj.n_x, obj.N); 
-            % %obj.u_ji = sdpvar(obj.n_u, obj.N-1);
         end
         
-        %% Shift
-        % function shift(obj, k)
-        %     obj.x_ij   = [obj.x_ij(:, k+1:end),  obj.x_ij(:, end)];
-        %     obj.u_ij   = [obj.u_ij(:, k+1:end),   obj.u_ij(:, end)];
-        %     obj.z_x_j  = [obj.z_x_j(:, k+1:end),   obj.z_x_j(:, end)];
-        %     obj.z_u_j  = [obj.z_u_j(:, k+1:end),   obj.z_u_j(:, end)];
-        %     obj.mu_x_ij = [obj.mu_x_ij(:, k+1:end), obj.mu_x_ij(:, end)];
-        %     obj.mu_u_ij = [obj.mu_u_ij(:, k+1:end), obj.mu_u_ij(:, end)];
-        %     obj.mu_x_ji = [obj.mu_x_ji(:, k+1:end), obj.mu_x_ji(:, end)];
-        %     obj.mu_u_ji = [obj.mu_u_ji(:, k+1:end),  obj.mu_u_ji(:, end)];
-        % end
         %% Set edge for tuning penalty parameters
         function setEdge(obj, rho_x, rho_u, rho_v)
             obj.rho_x_ij = rho_x * obj.rho_x_ij;
