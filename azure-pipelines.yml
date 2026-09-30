@@ -65,16 +65,14 @@ stages:
         steps:
           - checkout: self
             clean: true
-          - powershell: python -m pip install -e '.[dev]'
+          - script: python -m pip install -e .[dev]
             displayName: Install ControlBench
-          - powershell: matlab -singleCompThread -batch "buildtool ci"
+          - script: '"%CONTROLBENCH_MATLAB%" -singleCompThread -batch "buildtool ci"'
             displayName: MATLAB unit and integration tests
-          - powershell: |
-              controlbench run experiments/tanks/smoke.yaml --output "$(resultsDirectory)"
-              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-              python scripts/ci/stage_simulation_results.py `
-                --results "$(resultsDirectory)" `
-                --staging "$(stagingDirectory)"
+          - script: |
+              python -m controlbench.cli run experiments/tanks/smoke.yaml --output "$(resultsDirectory)"
+              if errorlevel 1 exit /b %errorlevel%
+              python scripts\ci\stage_simulation_results.py --results "$(resultsDirectory)" --staging "$(stagingDirectory)"
             displayName: Run and verify DMPC smoke simulation
           - task: PublishTestResults@2
             condition: always()
