@@ -36,7 +36,7 @@ stages:
           - script: mypy src/controlbench scripts/ci
             displayName: Type checking
           - script: >-
-              pytest --junitxml=$(Build.SourcesDirectory)/artifacts/python/junit.xml
+              python -m pytest --junitxml=$(Build.SourcesDirectory)/artifacts/python/junit.xml
               --cov=controlbench --cov-report=xml:$(Build.SourcesDirectory)/artifacts/python/coverage.xml
               --cov-report=term-missing --cov-fail-under=85
             displayName: Python tests
