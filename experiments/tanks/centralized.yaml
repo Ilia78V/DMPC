@@ -1,0 +1,5 @@
+experiment: {name: tanks_centralized}
+controller: {type: matlab_mpc}
+requirements:
+  - {id: tank_bounds, metric: state_violation_count, operator: le, limit: 0}
+  - {id: input_bounds, metric: input_violation_count, operator: le, limit: 0}

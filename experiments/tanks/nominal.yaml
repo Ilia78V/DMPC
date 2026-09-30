@@ -1,0 +1,7 @@
+schema_version: 1
+experiment: {name: tanks_nominal, seed: 42}
+requirements:
+  - {id: tank_bounds, metric: state_violation_count, operator: le, limit: 0}
+  - {id: input_bounds, metric: input_violation_count, operator: le, limit: 0}
+  - {id: successful_solves, metric: failed_local_solves, operator: le, limit: 0}
+  - {id: convergence, metric: converged_step_fraction, operator: ge, limit: 1}

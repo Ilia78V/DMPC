@@ -1,0 +1,13 @@
+name: Licensed MATLAB integration
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  integration:
+    # Opt-in trusted runner with MATLAB, YALMIP and IPOPT; never untrusted PR code.
+    runs-on: [self-hosted, controlbench-matlab]
+    steps:
+      - uses: actions/checkout@v4
+      - name: MATLAB unit and integration checks
+        run: matlab -singleCompThread -batch "r=runtests('matlab/tests'); assertSuccess(r);"

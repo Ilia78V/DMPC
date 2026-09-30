@@ -1,0 +1,9 @@
+base:
+  experiment: {name: horizon_scaling}
+  scenario: {duration_s: 0.2}
+  requirements:
+    - {id: state_bounds, metric: state_violation_count, operator: le, limit: 0}
+sweep:
+  controller.horizon_steps: [3, 5, 10]
+  plant.agents: [2, 4]
+max_runs: 6

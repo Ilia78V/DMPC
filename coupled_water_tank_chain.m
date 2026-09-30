@@ -294,12 +294,12 @@ sgtitle("t10 - state - approximation _ penalty = " + rho_init);
 %% (Optional) Save the results
 % save('D:\studies\FAU\programming project\DMPC-master\DMPC-master\tank_chain\test13 (full simulation time, new convergence criterion)\noApprox_p100_noAdapt.mat');
 
-% filesToAdd = repo.ModifiedFiles;       % returns a string array
+% filesToAdd = repo.ModifiedFiles;                  % returns a string array
 
-% existingFiles = filesToAdd(isfile(filesToAdd));
+% existingFiles = filesToAdd(isfile(filesToAdd));   % Keep only files that still exist
 
-% add(repo, filesToAdd);                 % stage all modified files
+% add(repo, existingFiles);                         % stage all modified files
 
-% commit(repo, Message="finalize project implementation");
+% commit(repo, Message="clean up");
 
 % push(repo);

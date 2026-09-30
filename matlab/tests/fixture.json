@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "experiment": {
+    "name": "tanks",
+    "seed": 42
+  },
+  "plant": {
+    "model": "linear_chain",
+    "agents": 2,
+    "initial_level_m": 0.5,
+    "reference_level_m": 2.0,
+    "coupling_model": "linear",
+    "area_m2": 0.1,
+    "coupling_gain": 0.1,
+    "endpoint_gain": 1,
+    "state_weight": 1.0,
+    "endpoint_state_weight": 0.1,
+    "input_weight": 0.1,
+    "terminal_weight": 1.0
+  },
+  "controller": {
+    "type": "matlab_mpc",
+    "horizon_steps": 3,
+    "sample_time_s": 0.1,
+    "optimizer": "ipopt",
+    "admm": {
+      "max_iterations": 120,
+      "convergence_tolerance": 0.001,
+      "initial_penalty": 20.0,
+      "adaptive_penalty": false,
+      "approximation": "none"
+    }
+  },
+  "scenario": {
+    "duration_s": 0.2,
+    "integrator": "forward_euler"
+  },
+  "constraints": {
+    "level_m": {
+      "min": 0.0,
+      "max": 3.0
+    },
+    "input": {
+      "min": 0.0,
+      "max": 1000.0
+    },
+    "tolerance": 1e-06
+  },
+  "requirements": [],
+  "execution": {
+    "timeout_s": 600.0
+  }
+}

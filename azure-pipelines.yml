@@ -1,0 +1,117 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pr:
+  branches:
+    include:
+      - master
+
+variables:
+  pythonVersion: '3.12'
+  resultsDirectory: '$(Build.SourcesDirectory)/results/ci'
+  stagingDirectory: '$(Build.ArtifactStagingDirectory)/simulation-results'
+
+stages:
+  - stage: PortableValidation
+    displayName: Python quality and artifact-contract tests
+    jobs:
+      - job: Python
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - checkout: self
+            clean: true
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+          - script: python -m pip install -e '.[dev]'
+            displayName: Install ControlBench
+          - script: ruff check src tests scripts
+            displayName: Lint
+          - script: ruff format --check src tests scripts
+            displayName: Formatting
+          - script: mypy src/controlbench scripts/ci
+            displayName: Type checking
+          - script: >-
+              pytest --junitxml=$(Build.SourcesDirectory)/artifacts/python/junit.xml
+              --cov=controlbench --cov-report=xml:$(Build.SourcesDirectory)/artifacts/python/coverage.xml
+              --cov-report=term-missing --cov-fail-under=85
+            displayName: Python tests
+          - task: PublishTestResults@2
+            condition: always()
+            inputs:
+              testResultsFormat: JUnit
+              testResultsFiles: artifacts/python/junit.xml
+              testRunTitle: ControlBench Python
+          - task: PublishCodeCoverageResults@2
+            condition: succeededOrFailed()
+            inputs:
+              summaryFileLocation: artifacts/python/coverage.xml
+
+  - stage: DMPCSimulation
+    displayName: MATLAB DMPC validation and simulation
+    dependsOn: PortableValidation
+    condition: succeeded()
+    jobs:
+      - job: ValidateAndRun
+        timeoutInMinutes: 60
+        pool:
+          name: ControlBench
+          demands:
+            - Agent.OS -equals Windows_NT
+            - controlbench.dependencies -equals true
+        steps:
+          - checkout: self
+            clean: true
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+          - powershell: python -m pip install -e '.[dev]'
+            displayName: Install ControlBench
+          - powershell: matlab -singleCompThread -batch "buildtool ci"
+            displayName: MATLAB unit and integration tests
+          - powershell: |
+              controlbench run experiments/tanks/smoke.yaml --output "$(resultsDirectory)"
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+              python scripts/ci/stage_simulation_results.py `
+                --results "$(resultsDirectory)" `
+                --staging "$(stagingDirectory)"
+            displayName: Run and verify DMPC smoke simulation
+          - task: PublishTestResults@2
+            condition: always()
+            inputs:
+              testResultsFormat: JUnit
+              testResultsFiles: artifacts/matlab-*/junit.xml
+              testRunTitle: ControlBench MATLAB
+          - publish: $(stagingDirectory)
+            artifact: simulation-results
+            displayName: Publish simulation pipeline artifact
+
+  - stage: PublishBlob
+    displayName: Publish validated results to Azure Blob Storage
+    dependsOn: DMPCSimulation
+    condition: succeeded()
+    jobs:
+      - job: Upload
+        pool:
+          vmImage: ubuntu-latest
+        steps:
+          - download: current
+            artifact: simulation-results
+          - task: AzureCLI@2
+            displayName: Upload immutable simulation bundle
+            inputs:
+              azureSubscription: controlbench-blob-wif
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                set -euo pipefail
+                az storage blob upload-batch \
+                  --account-name "$(AZURE_STORAGE_ACCOUNT)" \
+                  --auth-mode login \
+                  --destination simulation-results \
+                  --destination-path "$(Build.SourceVersion)/$(Build.BuildId)" \
+                  --source "$(Pipeline.Workspace)/simulation-results" \
+                  --overwrite false

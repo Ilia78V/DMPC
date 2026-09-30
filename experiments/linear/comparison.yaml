@@ -1,0 +1,18 @@
+base:
+  experiment: {name: convex_controller_comparison}
+  plant:
+    model: linear_chain
+    coupling_model: linear
+    agents: 2
+    coupling_gain: 0.1
+    endpoint_gain: 1
+  controller:
+    horizon_steps: 3
+    admm: {initial_penalty: 1, max_iterations: 400, convergence_tolerance: 0.0000001}
+  scenario: {duration_s: 0.2}
+  requirements:
+    - {id: state_bounds, metric: state_violation_count, operator: le, limit: 0}
+    - {id: convergence, metric: converged_step_fraction, operator: ge, limit: 1}
+sweep:
+  controller.type: [matlab_mpc, matlab_dmpc]
+max_runs: 2

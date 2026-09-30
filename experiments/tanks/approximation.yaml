@@ -1,0 +1,9 @@
+experiment: {name: tanks_approximation}
+controller:
+  horizon_steps: 5
+  admm: {approximation: all, max_iterations: 120, convergence_tolerance: 0.001}
+scenario: {duration_s: 0.2}
+requirements:
+  - {id: state_bounds, metric: state_violation_count, operator: le, limit: 0}
+  - {id: input_bounds, metric: input_violation_count, operator: le, limit: 0}
+  - {id: convergence, metric: converged_step_fraction, operator: ge, limit: 1}

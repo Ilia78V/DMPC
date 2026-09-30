@@ -2,6 +2,9 @@ classdef ADMM_Solver
     properties (Access = public)
         
         optimizer;
+        % Optional handle-based observer used by ControlBench batch runs.
+        diagnostics = [];
+        verbosity = 1;
 
         % Agent and data
         agents;
@@ -95,6 +98,9 @@ classdef ADMM_Solver
         %% ADMM solver function
         function solve(obj)
             for q = 1:obj.max_iterations
+                if ~isempty(obj.diagnostics)
+                    obj.diagnostics.iteration = q;
+                end
                 % Step 1: Compute local variables
                 obj.compute_local_variables();
 
@@ -115,12 +121,18 @@ classdef ADMM_Solver
 
                 % Step 7: Compute residuals and adapt penalty parameters
                 obj.update_residual();
+                if ~isempty(obj.diagnostics)
+                    obj.diagnostics.recordResiduals(obj.agents, obj.N_pr);
+                end
 
                 % Step 8: Send penalty parameters to sending neighbors
                 obj.send_penalties();
 
                 % Step 9: Check convergence
                 if obj.check_convergence()
+                    if ~isempty(obj.diagnostics)
+                        obj.diagnostics.converged = true;
+                    end
                     obj.update_previous_data();
                     fprintf('ADMM solver converged at %.2f\n', q)
                     break;
@@ -181,7 +193,9 @@ classdef ADMM_Solver
                         for neighbor = agent.receiving_neighbors
                             nd = neighbor{1}.data;
 
-                            v = sdpvar(size(nd.v_i,1), 1);
+                            % External influence is the sum from other neighbors,
+                            % not a new free optimization variable.
+                            v = zeros(size(nd.v_i,1), 1);
                             for se_neighbor = agent.sending_neighbors
                                 sd = se_neighbor{1}.data;
                                 if neighbor{1}.id ~= se_neighbor{1}.id
@@ -196,7 +210,11 @@ classdef ADMM_Solver
                     % State and control bounds
                     % constraints = [constraints, s_x(:,k) >= s0(:,k)];
                     % constraints = [constraints, d.x_min - s_x(:,k) <= d.x(:,k) <= d.x_max + s_x(:,k)];
-                    constraints = [constraints, d.x_min <= d.x(:,k) <= d.x_max ];
+                    initialTolerance = 0;
+                    if k == 1 && ~isempty(obj.diagnostics)
+                        initialTolerance = obj.boundary_tol;
+                    end
+                    constraints = [constraints, d.x_min-initialTolerance <= d.x(:,k) <= d.x_max+initialTolerance ];
                     constraints = [constraints, d.u_min <= d.u(:,k) <= d.u_max];
                     
                     % Local equality and inequality constraints
@@ -263,20 +281,32 @@ classdef ADMM_Solver
 
                 
                 % -----Solve the optimization problem-----
-                options = sdpsettings('solver', obj.optimizer, 'verbose', 1, 'debug', 0);
+                options = sdpsettings('solver', obj.optimizer, 'verbose', obj.verbosity, 'debug', 0);
 
                 
                 options.ipopt.max_iter = 2000;           % Set max iterations
                 options.ipopt.tol = 1e-5;               % Set convergence tolerance
+                if ~isempty(obj.diagnostics)
+                    options.ipopt.bound_relax_factor = 0;
+                end
                
                 
+                localTimer = tic;
                 sol = optimize(constraints, cost, options);
+                if ~isempty(obj.diagnostics)
+                    obj.diagnostics.recordSolve(agent.id, sol.problem, toc(localTimer), sol.info);
+                    if sol.problem ~= 0
+                        error('ControlBench:LocalSolveFailed', '%s', sol.info);
+                    end
+                end
                 % sol = optimize(constraints);
 
                 options.ipopt.warm_start_init_point = 'yes';
    
                 if sol.problem == 0
-                    disp('Solver successfully found an optimal solution.');
+                    if obj.verbosity > 0
+                        disp('Solver successfully found an optimal solution.');
+                    end
                 elseif sol.problem == 1
                     disp('Solver failed: Infeasible problem.');
                 elseif sol.problem == 2

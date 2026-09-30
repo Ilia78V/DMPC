@@ -1,0 +1,3 @@
+- {metric: tracking_rmse, direction: lower, absolute: 0.001, relative: 0.05}
+- {metric: state_violation_count, direction: lower, absolute: 0, relative: 0}
+- {metric: input_violation_count, direction: lower, absolute: 0, relative: 0}
