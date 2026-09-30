@@ -62,7 +62,6 @@ stages:
           name: ControlBench
           demands:
             - Agent.OS -equals Windows_NT
-            - controlbench.dependencies -equals true
         steps:
           - checkout: self
             clean: true
