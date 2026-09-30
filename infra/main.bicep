@@ -6,7 +6,7 @@ targetScope = 'resourceGroup'
 param storageAccountName string
 
 @description('Azure region for the result store.')
-param location string = resourceGroup().location
+param location string = 'francecentral'
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   name: storageAccountName
@@ -19,6 +19,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
     accessTier: 'Hot'
     allowBlobPublicAccess: false
     allowCrossTenantReplication: false
+    allowSharedKeyAccess: false
     defaultToOAuthAuthentication: true
     minimumTlsVersion: 'TLS1_2'
     publicNetworkAccess: 'Enabled'
